@@ -23,6 +23,17 @@ namespace PlaylistConverter
             //CheckSavedAuthentications();
         }
 
+        //private List<string> CheckSavedAuthentications()
+        //{
+        //    List<string> savedAuthentications = [];
+        //    foreach ()
+        //    {
+        //        savedAuthentications.Add();
+        //    }
+
+        //    return savedAuthentications;
+        //}
+
         private async void YoutubeLoginButton_Click(object sender, RoutedEventArgs e)
         {
             var youtubeService = await PlatformAuthentications.YoutubeAuthentication.AuthenticateAsync();

@@ -366,3 +366,5 @@ FodyWeavers.xsd
 apikeys.json
 yt_client_secret.json
 client_secret.json
+*.TokenResponse-user
+spotify_token.json
