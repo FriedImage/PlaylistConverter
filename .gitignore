@@ -364,3 +364,5 @@ FodyWeavers.xsd
 
 # Additional Ignores
 apikeys.json
+yt_client_secret.json
+client_secret.json

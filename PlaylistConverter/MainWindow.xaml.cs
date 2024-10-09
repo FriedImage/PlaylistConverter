@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,6 +20,42 @@ namespace PlaylistConverter
         public MainWindow()
         {
             InitializeComponent();
+            //CheckSavedAuthentications();
+        }
+
+        private async void YoutubeLoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            var youtubeService = await PlatformAuthentications.YoutubeAuthentication.AuthenticateAsync();
+
+            if (youtubeService != null)
+            {
+                MessageBox.Show("Youtube Login Successful!");
+            }
+            else
+            {
+                MessageBox.Show("Youtube Login Failed");
+            }
+        }
+
+        private async void SpotifyLoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            var spotifyClient = await PlatformAuthentications.SpotifyAuthentication.AuthenticateUserAsync();
+
+            if (spotifyClient != null)
+            {
+                var playlists = await spotifyClient.Playlists.CurrentUsers();
+
+                foreach (var playlist in playlists.Items)
+                {
+                    Debug.WriteLine($"Spotify Playlist: {playlist.Name}");
+                }
+
+                MessageBox.Show("Spotify Login Successful!");
+            }
+            else
+            {
+                MessageBox.Show("Spotify Login Failed");
+            }
         }
     }
 }
