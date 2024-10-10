@@ -27,6 +27,7 @@ namespace PlaylistConverter
                 return new SpotifyClient(config.WithToken(response.AccessToken));
             }
 
+            // User log-in
             public static async Task<SpotifyClient> AuthenticateUserAsync()
             {
                 var spotifyToken = SpotifyToken.LoadFromFile();
@@ -228,29 +229,30 @@ namespace PlaylistConverter
         public class YoutubeAuthentication
         {
             private static readonly int staticPort = 5001; // Server port for Authentication callbacks
-            
+
             // old, specific filepath containing "web" area of secret
             //static readonly string clientSecretPath = Path.Combine(AppConfig.rootPath, "yt_client_secret.json");
 
+            // User log-in
             public static async Task<YouTubeService> AuthenticateAsync()
             {
-                var tokenResponse = YoutubeToken.LoadFromFile();
+                var youtubeToken = YoutubeToken.LoadFromFile();
 
                 // Check if the token already exists
-                if (tokenResponse != null)
+                if (youtubeToken != null)
                 {
-                    // Check if token has expired
-                    if (!tokenResponse.IsExpired && !string.IsNullOrEmpty(tokenResponse.RefreshToken))
+                    // Not expired and Token not corrupt
+                    if (!youtubeToken.IsExpired && !string.IsNullOrEmpty(youtubeToken.RefreshToken))
                     {
                         // Token is valid, use it to create YouTubeService
-                        return CreateYouTubeService(tokenResponse.AccessToken);
+                        return CreateYouTubeService(youtubeToken.AccessToken);
                     }
-                    else if (!string.IsNullOrEmpty(tokenResponse.RefreshToken))
+                    // Token expired, but tokenResponse.RefreshToken is available
+                    else if (!string.IsNullOrEmpty(youtubeToken.RefreshToken))
                     {
                         try
                         {
-                            // Token expired, refresh it
-                            var refreshedToken = await RefreshTokenAsync(tokenResponse.RefreshToken);
+                            var refreshedToken = await RefreshTokenAsync(youtubeToken.RefreshToken);
                             refreshedToken.SaveToFile(); // Save the new token after refreshing
                             return CreateYouTubeService(refreshedToken.AccessToken);
                         }
@@ -260,7 +262,7 @@ namespace PlaylistConverter
                         }
                     }
 
-                    // Full authentication flow if no valid token is found
+                    // Full authentication flow if token is not null but corrupt
                     return await FullAuthenticationFlow();
                 }
 

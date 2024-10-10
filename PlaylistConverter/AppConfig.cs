@@ -19,9 +19,10 @@ namespace PlaylistConverter
         static AppConfig()
         {
             string jsonFileContent = File.ReadAllText(jsonFilePath); // Reads content from json file
-            jsonContent = JObject.Parse(jsonFileContent);
+            jsonContent = JObject.Parse(jsonFileContent); // Set JObject data to apikey.json type data
         }
 
+        // Contains all the Tokens used
         public static class Tokens
         {
             // folder containing the tokens
@@ -85,6 +86,7 @@ namespace PlaylistConverter
                 }
             }
 
+            // Token config for Youtube
             public class YoutubeToken
             {
                 // Youtube token properties
