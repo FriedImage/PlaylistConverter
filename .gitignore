@@ -369,3 +369,4 @@ client_secret.json
 *.TokenResponse-user
 spotify_token.json
 youtube_token.json
+temp/

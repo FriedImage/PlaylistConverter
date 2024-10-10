@@ -1,7 +1,5 @@
 ﻿using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Services;
-using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Newtonsoft.Json;
 using SpotifyAPI.Web;
@@ -19,15 +17,15 @@ namespace PlaylistConverter
         {
             private static readonly int staticPort = 5000; // Server port for Authentication callbacks
 
-            // Client only needed for NON-User provided Scopes
-            //public static async Task<SpotifyClient> AuthenticateClientAsync()
-            //{
-            //    var config = SpotifyClientConfig.CreateDefault();
-            //    var request = new ClientCredentialsRequest(AppConfig.SpotifyAPI.GetClientId(), AppConfig.SpotifyAPI.GetSecretKey());
-            //    var response = await new OAuthClient(config).RequestToken(request);
+            // Client only needed for NON-User provided Scopes (not used at the moment)
+            public static async Task<SpotifyClient> AuthenticateClientAsync()
+            {
+                var config = SpotifyClientConfig.CreateDefault();
+                var request = new ClientCredentialsRequest(AppConfig.SpotifyAPI.GetClientId(), AppConfig.SpotifyAPI.GetSecretKey());
+                var response = await new OAuthClient(config).RequestToken(request);
 
-            //    return new SpotifyClient(config.WithToken(response.AccessToken));
-            //}
+                return new SpotifyClient(config.WithToken(response.AccessToken));
+            }
 
             public static async Task<SpotifyClient> AuthenticateUserAsync()
             {
@@ -150,7 +148,7 @@ namespace PlaylistConverter
                     // Use a dictionary to inspect raw values
                     var tokenData = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
 
-                    // Debug to see if tokenData contains expected values
+                    // tokenData expected values
                     Debug.WriteLine($"Token data: {string.Join(", ", tokenData.Select(kv => $"{kv.Key}: {kv.Value}"))}");
 
                     // Create and populate SpotifyToken object
@@ -230,7 +228,9 @@ namespace PlaylistConverter
         public class YoutubeAuthentication
         {
             private static readonly int staticPort = 5001; // Server port for Authentication callbacks
-            static readonly string clientSecretPath = Path.Combine(AppConfig.rootPath, "yt_client_secret.json");
+            
+            // old, specific filepath containing "web" area of secret
+            //static readonly string clientSecretPath = Path.Combine(AppConfig.rootPath, "yt_client_secret.json");
 
             public static async Task<YouTubeService> AuthenticateAsync()
             {
@@ -240,18 +240,28 @@ namespace PlaylistConverter
                 if (tokenResponse != null)
                 {
                     // Check if token has expired
-                    if (!tokenResponse.IsExpired)
+                    if (!tokenResponse.IsExpired && !string.IsNullOrEmpty(tokenResponse.RefreshToken))
                     {
                         // Token is valid, use it to create YouTubeService
                         return CreateYouTubeService(tokenResponse.AccessToken);
                     }
-                    else
+                    else if (!string.IsNullOrEmpty(tokenResponse.RefreshToken))
                     {
-                        // Token expired, refresh it
-                        var refreshedToken = await RefreshTokenAsync(tokenResponse.RefreshToken);
-                        refreshedToken.SaveToFile();
-                        return CreateYouTubeService(refreshedToken.AccessToken);
+                        try
+                        {
+                            // Token expired, refresh it
+                            var refreshedToken = await RefreshTokenAsync(tokenResponse.RefreshToken);
+                            refreshedToken.SaveToFile(); // Save the new token after refreshing
+                            return CreateYouTubeService(refreshedToken.AccessToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Token refresh failed: {ex.Message}. Initiating full authentication.");
+                        }
                     }
+
+                    // Full authentication flow if no valid token is found
+                    return await FullAuthenticationFlow();
                 }
 
                 // Full authentication flow if no valid token is found
@@ -273,7 +283,7 @@ namespace PlaylistConverter
                 var refreshRequestData = new Dictionary<string, string>
                 {
                     { "client_id", AppConfig.YoutubeAPI.GetClientId() },
-                    { "client_secret", AppConfig.YoutubeAPI.GetSecretKey() },
+                    { "client_secret", AppConfig.YoutubeAPI.GetClientSecret() },
                     { "refresh_token", refreshToken },
                     { "grant_type", "refresh_token" }
                 };
@@ -284,45 +294,65 @@ namespace PlaylistConverter
                 if (response.IsSuccessStatusCode)
                 {
                     string json = await response.Content.ReadAsStringAsync();
-                    var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(json);
+                    Debug.WriteLine("Raw .json response: " + json);
+
+                    //var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(json);
+                    // Use a dictionary to inspect raw values
+                    var tokenData = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+                    // tokenData expected values
+                    Debug.WriteLine($"Token data: {string.Join(", ", tokenData.Select(kv => $"{kv.Key}: {kv.Value}"))}");
 
                     // Create a YoutubeToken from the TokenResponse
-                    var youtubeToken = new YoutubeToken
+                    var newToken = new YoutubeToken
                     {
-                        AccessToken = tokenResponse.AccessToken, // You need to extract these values based on the API response
-                        RefreshToken = refreshToken, // Keep the same refresh token
+                        AccessToken = tokenData["access_token"], // You need to extract these values based on the API response
+                        RefreshToken = tokenData.TryGetValue("refresh_token", out string? value) ? value : refreshToken, // Keep the same refresh token
                         IssuedUtc = DateTime.UtcNow, // Set to current time
-                        ExpiresInSeconds = tokenResponse.ExpiresInSeconds // Use the expires_in from the API response
+                        ExpiresInSeconds = long.Parse(tokenData["expires_in"]) // Time is long?
                     };
 
-                    youtubeToken.SaveToFile(); // Save the new token
-
-                    return youtubeToken; // Return the new YoutubeToken
+                    return newToken; // Return the new YoutubeToken
                 }
                 else
                 {
                     throw new Exception("Failed to refresh YouTube token: " + response.ReasonPhrase);
                 }
-
-                //using var client = new HttpClient();
-                //// client
-                //var response = await client.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(refreshRequestData));
-                //string json = await response.Content.ReadAsStringAsync();
-                //return JsonConvert.DeserializeObject<TokenResponse>(json);
             }
 
             private static async Task<YouTubeService> FullAuthenticationFlow()
             {
                 UserCredential credential;
 
-                using (var stream = new FileStream(clientSecretPath, FileMode.Open, FileAccess.Read))
+                // Read file directly containing ONLY secret
+                //using (var stream = new FileStream(AppConfig.YoutubeAPI.GetClientSecret(), FileMode.Open, FileAccess.Read))
+                //{
+                //    credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                //        GoogleClientSecrets.FromStream(stream).Secrets,
+                //        [YouTubeService.Scope.Youtube],
+                //        "user",
+                //        CancellationToken.None,
+                //        //new FileDataStore(youtubeTokenPath, true), // Save tokens to file
+                //        null,
+                //        new CustomLocalServerCodeReceiver(staticPort)
+                //    );
+                //}
+
+                // Read from apikeys.json
+                using (var stream = new FileStream(AppConfig.jsonFilePath, FileMode.Open, FileAccess.Read))
+                // filestream
+                using (var reader = new StreamReader(stream))
                 {
+                    // Get ClientSecret type data from "web" section of jsonObject
+                    var clientSecrets = AppConfig.YoutubeAPI.GetGoogleClientSecret().Secrets;
+
                     credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                        GoogleClientSecrets.FromStream(stream).Secrets,
+                        clientSecrets,
+                        // Necessary permissions needed
                         [YouTubeService.Scope.Youtube],
                         "user",
                         CancellationToken.None,
-                        new FileDataStore(youtubeTokenPath), // Save tokens to file
+                        null,
                         new CustomLocalServerCodeReceiver(staticPort)
                     );
                 }
@@ -346,8 +376,6 @@ namespace PlaylistConverter
                 });
             }
         }
-
-
 
     }
 

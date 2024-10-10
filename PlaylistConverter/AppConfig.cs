@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Responses;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,10 +10,11 @@ namespace PlaylistConverter
     internal class AppConfig
     {
         //static readonly string jsonFileContent = File.ReadAllText("apikeys.json"); 
+        //private static dynamic apiKeys;
 
-        static readonly string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        public static readonly string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         public static readonly string rootPath = Path.Combine(baseDirectory, @"..\..\..\");
-        static readonly string jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\", "apikeys.json");
+        public static readonly string jsonFilePath = Path.Combine(rootPath, "apikeys.json");
         private static readonly JObject jsonContent;
 
         static AppConfig()
@@ -25,11 +27,10 @@ namespace PlaylistConverter
         {
             // folder containing the tokens
             public static string tokenFolderDirectory = Path.Combine(rootPath, "tokens");
-
             // type: JSON
             public static readonly string spotifyTokenPath = Path.Combine(tokenFolderDirectory, "spotify_token.json");
             // type: TOKENRESPONSE-USER
-            public static readonly string youtubeTokenPath = Path.Combine(tokenFolderDirectory, "youtube_token");
+            public static readonly string youtubeTokenPath = Path.Combine(tokenFolderDirectory, "youtube_token.TokenResponse-user");
 
             public static string GetTokenStorageFolderDirectory()
             {
@@ -119,7 +120,8 @@ namespace PlaylistConverter
                     Debug.WriteLine($"Saving token to path: {youtubeTokenPath}");
 
                     var json = JsonConvert.SerializeObject(this);
-                    File.WriteAllText(youtubeTokenPath, json);
+
+                    File.WriteAllText(youtubeTokenPath, json); // Error, denied?
                 }
 
             }
@@ -130,6 +132,11 @@ namespace PlaylistConverter
         {
 
             public static string GetSecretKey() => jsonContent["YoutubeSecretKey"]!.ToString();
+
+            public static string GetClientSecret() => jsonContent["YoutubeClientSecret"]!.ToString();
+
+            // Works as GetClientSecret() with Initial Conversion to a GoogleClientSecrets type
+            public static GoogleClientSecrets GetGoogleClientSecret() => jsonContent["YoutubeClientSecret"]!.ToObject<GoogleClientSecrets>()!;
 
             public static string GetClientId() => jsonContent["YoutubeClientId"]!.ToString();
 
