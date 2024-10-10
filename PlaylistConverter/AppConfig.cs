@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Responses;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -80,7 +79,7 @@ namespace PlaylistConverter
                 {
                     var json = JsonConvert.SerializeObject(this);
 
-                    Debug.WriteLine($"Saving token to path: {spotifyTokenPath}");
+                    Debug.WriteLine($"Saving spotify token to path: {spotifyTokenPath}");
 
                     File.WriteAllText(spotifyTokenPath, json);
                 }
@@ -88,6 +87,7 @@ namespace PlaylistConverter
 
             public class YoutubeToken
             {
+                // Youtube token properties
                 public required string AccessToken { get; set; }
                 public required string RefreshToken { get; set; }
                 public DateTime IssuedUtc { get; set; }
@@ -117,11 +117,11 @@ namespace PlaylistConverter
                 // Save token-file at class-path
                 public void SaveToFile()
                 {
-                    Debug.WriteLine($"Saving token to path: {youtubeTokenPath}");
+                    Debug.WriteLine($"Saving youtube token to path: {youtubeTokenPath}");
 
                     var json = JsonConvert.SerializeObject(this);
 
-                    File.WriteAllText(youtubeTokenPath, json); // Error, denied?
+                    File.WriteAllText(youtubeTokenPath, json);
                 }
 
             }
@@ -130,7 +130,6 @@ namespace PlaylistConverter
         // Gets Youtube Related Data
         public static class YoutubeAPI
         {
-
             public static string GetSecretKey() => jsonContent["YoutubeSecretKey"]!.ToString();
 
             public static string GetClientSecret() => jsonContent["YoutubeClientSecret"]!.ToString();
@@ -146,7 +145,6 @@ namespace PlaylistConverter
         // Gets Spotify Related Data
         public class SpotifyAPI
         {
-            // Youtube Secret
             public static string GetSecretKey() => jsonContent["SpotifySecretKey"]!.ToString();
 
             public static string GetClientId() => jsonContent["SpotifyClientId"]!.ToString();
