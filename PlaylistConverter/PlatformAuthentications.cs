@@ -1,25 +1,24 @@
-﻿using SpotifyAPI.Web;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using Google.Apis.YouTube.v3;
-using Google.Apis.Util.Store;
-using System.IO;
-using static PlaylistConverter.AppConfig.Tokens;
+﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Auth.OAuth2.Requests;
+using Google.Apis.Services;
+using Google.Apis.Util.Store;
+using Google.Apis.YouTube.v3;
 using Newtonsoft.Json;
+using SpotifyAPI.Web;
+using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
+using static PlaylistConverter.AppConfig.Tokens;
 
 namespace PlaylistConverter
 {
     internal class PlatformAuthentications
     {
-        
         // Spotify Authentications
         public class SpotifyAuthentication
         {
             private static readonly int staticPort = 5000; // Server port for Authentication callbacks
-            
+
             // Client only needed for NON-User provided Scopes
             //public static async Task<SpotifyClient> AuthenticateClientAsync()
             //{
@@ -36,23 +35,34 @@ namespace PlaylistConverter
 
                 if (spotifyToken != null)
                 {
-                    if (!spotifyToken.IsExpired)
+                    // Not expired and Token not corrupt
+                    if (!spotifyToken.IsExpired && !string.IsNullOrEmpty(spotifyToken.RefreshToken))
                     {
                         // Return existing client if token is valid
                         return new SpotifyClient(spotifyToken.AccessToken);
                     }
-                    else
+                    // Token expired, but refreshToken is available
+                    else if (!string.IsNullOrEmpty(spotifyToken.RefreshToken))
                     {
-                        var refreshedToken = await RefreshTokenAsync(spotifyToken.RefreshToken);
-                        refreshedToken.SaveToFile();
-                        return new SpotifyClient(refreshedToken.AccessToken);
+                        try
+                        {
+                            var refreshedToken = await RefreshTokenAsync(spotifyToken.RefreshToken);
+                            refreshedToken.SaveToFile(); // Save the new token after refreshing
+                            return new SpotifyClient(refreshedToken.AccessToken);
+                        }
+                        // If available refresh token is corrupt
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Token refresh failed: {ex.Message}. Initiating full authentication.");
+                        }
                     }
-                }
-                else
-                {
-                    // Full authentication flow if no valid token is found
+
+                    // Full authentication flow if token is not null but corrupt
                     return await FullAuthenticationFlow();
                 }
+
+                // Full authentication flow if no valid token is found
+                return await FullAuthenticationFlow();
 
                 //// if token already exists and not expired
                 //if (spotifyToken != null && !spotifyToken.IsExpired)
@@ -135,7 +145,22 @@ namespace PlaylistConverter
                 if (response.IsSuccessStatusCode)
                 {
                     string json = await response.Content.ReadAsStringAsync();
-                    var tokenResponse = JsonConvert.DeserializeObject<SpotifyToken>(json);
+                    Debug.WriteLine("Raw .json response: " + json);
+
+                    // Use a dictionary to inspect raw values
+                    var tokenData = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+                    // Debug to see if tokenData contains expected values
+                    Debug.WriteLine($"Token data: {string.Join(", ", tokenData.Select(kv => $"{kv.Key}: {kv.Value}"))}");
+
+                    // Create and populate SpotifyToken object
+                    var tokenResponse = new SpotifyToken
+                    {
+                        AccessToken = tokenData["access_token"],
+                        RefreshToken = tokenData.TryGetValue("refresh_token", out string? value) ? value : refreshToken, // refresh_token may not be returned
+                        ExpiresAt = DateTime.UtcNow.AddSeconds(double.Parse(tokenData["expires_in"]))
+                    };
+
                     return tokenResponse;
                 }
                 else
@@ -204,7 +229,7 @@ namespace PlaylistConverter
         // YouTube Authentications
         public class YoutubeAuthentication
         {
-            private readonly static int staticPort = 5001; // Server port for Authentication callbacks
+            private static readonly int staticPort = 5001; // Server port for Authentication callbacks
             static readonly string clientSecretPath = Path.Combine(AppConfig.rootPath, "yt_client_secret.json");
 
             public static async Task<YouTubeService> AuthenticateAsync()
@@ -243,7 +268,7 @@ namespace PlaylistConverter
             }
 
             // Refreshes expired youtubeToken
-            private static async Task<TokenResponse> RefreshTokenAsync(string refreshToken)
+            private static async Task<YoutubeToken> RefreshTokenAsync(string refreshToken)
             {
                 var refreshRequestData = new Dictionary<string, string>
                 {
@@ -254,10 +279,36 @@ namespace PlaylistConverter
                 };
 
                 using var client = new HttpClient();
-                // client
                 var response = await client.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(refreshRequestData));
-                string json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<TokenResponse>(json);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(json);
+
+                    // Create a YoutubeToken from the TokenResponse
+                    var youtubeToken = new YoutubeToken
+                    {
+                        AccessToken = tokenResponse.AccessToken, // You need to extract these values based on the API response
+                        RefreshToken = refreshToken, // Keep the same refresh token
+                        IssuedUtc = DateTime.UtcNow, // Set to current time
+                        ExpiresInSeconds = tokenResponse.ExpiresInSeconds // Use the expires_in from the API response
+                    };
+
+                    youtubeToken.SaveToFile(); // Save the new token
+
+                    return youtubeToken; // Return the new YoutubeToken
+                }
+                else
+                {
+                    throw new Exception("Failed to refresh YouTube token: " + response.ReasonPhrase);
+                }
+
+                //using var client = new HttpClient();
+                //// client
+                //var response = await client.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(refreshRequestData));
+                //string json = await response.Content.ReadAsStringAsync();
+                //return JsonConvert.DeserializeObject<TokenResponse>(json);
             }
 
             private static async Task<YouTubeService> FullAuthenticationFlow()
@@ -276,8 +327,17 @@ namespace PlaylistConverter
                     );
                 }
 
+                // Create a YoutubeToken from the credential's token
+                var youtubeToken = new YoutubeToken
+                {
+                    AccessToken = credential.Token.AccessToken, // Get AccessToken from UserCredential
+                    RefreshToken = credential.Token.RefreshToken, // Get RefreshToken from UserCredential
+                    IssuedUtc = DateTime.UtcNow, // Set to current time
+                    ExpiresInSeconds = credential.Token.ExpiresInSeconds // Duration in seconds
+                };
+
                 // Save the newly-created token
-                YoutubeToken.SaveToFile(credential.Token);
+                youtubeToken.SaveToFile();
 
                 return new YouTubeService(new BaseClientService.Initializer()
                 {

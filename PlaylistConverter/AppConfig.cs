@@ -55,10 +55,10 @@ namespace PlaylistConverter
             // Token config for Spotify
             public class SpotifyToken
             {
+                // Spotify's token properties
                 public required string AccessToken { get; set; }
                 public required string RefreshToken { get; set; }
                 public DateTime ExpiresAt { get; set; }
-
                 public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
 
                 public static SpotifyToken? LoadFromFile()
@@ -79,7 +79,6 @@ namespace PlaylistConverter
                 {
                     var json = JsonConvert.SerializeObject(this);
 
-                    // Debugging line
                     Debug.WriteLine($"Saving token to path: {spotifyTokenPath}");
 
                     File.WriteAllText(spotifyTokenPath, json);
@@ -91,8 +90,8 @@ namespace PlaylistConverter
                 public required string AccessToken { get; set; }
                 public required string RefreshToken { get; set; }
                 public DateTime IssuedUtc { get; set; }
-                public int ExpiresInSeconds { get; set; }
-                public bool IsExpired => DateTime.UtcNow > IssuedUtc.AddSeconds(ExpiresInSeconds);
+                public long? ExpiresInSeconds { get; set; }
+                public bool IsExpired => DateTime.UtcNow > IssuedUtc.AddSeconds((double)ExpiresInSeconds);
 
                 // Gets a TOKENRESPONSE-USER type file
                 public static YoutubeToken? LoadFromFile()
@@ -117,7 +116,6 @@ namespace PlaylistConverter
                 // Save token-file at class-path
                 public void SaveToFile()
                 {
-                    // Debugging line
                     Debug.WriteLine($"Saving token to path: {youtubeTokenPath}");
 
                     var json = JsonConvert.SerializeObject(this);
