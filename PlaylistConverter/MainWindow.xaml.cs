@@ -20,19 +20,94 @@ namespace PlaylistConverter
         public MainWindow()
         {
             InitializeComponent();
-            //CheckSavedAuthentications();
+            CheckSavedAuthentications();
         }
 
-        //private List<string> CheckSavedAuthentications()
-        //{
-        //    List<string> savedAuthentications = [];
-        //    foreach ()
-        //    {
-        //        savedAuthentications.Add();
-        //    }
+        private void CheckSavedAuthentications()
+        {
+            bool spotifyTokenValid = ValidateSpotifyToken();
+            bool youtubeTokenValid = ValidateYoutubeToken();
 
-        //    return savedAuthentications;
-        //}
+            if (spotifyTokenValid)
+            {
+                SpotifyLoginButton.IsEnabled = false;
+            }
+            
+            if (youtubeTokenValid)
+            {
+                YoutubeLoginButton.IsEnabled = false;
+            }
+        }
+
+        // Checks if Spotify authentication is valid from current session
+        private static bool ValidateSpotifyToken()
+        {
+            var spotifyToken = AppConfig.Tokens.SpotifyToken.LoadFromFile();
+
+            // One-way condition
+            //if (spotifyToken != null && !spotifyToken.IsExpired && !string.IsNullOrEmpty(spotifyToken.RefreshToken))
+            //{
+            //    return true;
+            //}
+
+            // Precautions (Lead to false)
+            if (spotifyToken != null)
+            {
+                if (spotifyToken.IsExpired)
+                {
+                    Debug.WriteLine("Validation Failed: Spotify Token is Expired");
+                    return false;
+                }
+                else if (spotifyToken.RefreshToken == null)
+                {
+                    Debug.WriteLine("Validation Failed: Spotify Token is NULL");
+                    return false;
+                }
+            }
+            else
+            {
+                Debug.WriteLine("Validation Failed: Spotify Token is NULL");
+                return false;
+            }
+
+            // Token is valid
+            return true;
+        }
+
+        // Checks if Youtube authentication is valid from current session
+        private static bool ValidateYoutubeToken()
+        {
+            var youtubeToken = AppConfig.Tokens.YoutubeToken.LoadFromFile();
+
+            // One-way condition
+            //if (youtubeToken != null && !youtubeToken.IsExpired && !string.IsNullOrEmpty(youtubeToken.RefreshToken))
+            //{
+            //    return true;
+            //}
+
+            // Precautions (Lead to false)
+            if (youtubeToken != null)
+            {
+                if (youtubeToken.IsExpired)
+                {
+                    Debug.WriteLine("Validation Failed: Youtube Token is Expired");
+                    return false;
+                }
+                else if (youtubeToken.RefreshToken == null)
+                {
+                    Debug.WriteLine("Validation Failed: Youtube Token is NULL");
+                    return false;
+                }
+            }
+            else
+            {
+                Debug.WriteLine("Validation Failed: Youtube Token is NULL");
+                return false;
+            }
+
+            // Token is valid
+            return true;
+        }
 
         private async void YoutubeLoginButton_Click(object sender, RoutedEventArgs e)
         {
