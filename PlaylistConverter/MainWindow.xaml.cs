@@ -121,6 +121,8 @@ namespace PlaylistConverter
             {
                 MessageBox.Show("Youtube Login Failed");
             }
+
+            CheckSavedAuthentications();
         }
 
         private async void SpotifyLoginButton_Click(object sender, RoutedEventArgs e)
@@ -142,6 +144,8 @@ namespace PlaylistConverter
             {
                 MessageBox.Show("Spotify Login Failed");
             }
+
+            CheckSavedAuthentications();
         }
     }
 }
