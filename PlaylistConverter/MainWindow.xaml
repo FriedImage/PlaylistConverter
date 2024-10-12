@@ -26,7 +26,7 @@
                 <GradientStop Color="#FFD49AFF" Offset="0.96"/>
             </LinearGradientBrush>
         </Grid.Background>
-        <Label x:Name="AppNameLabel" Content="PlaylistConverter" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" FontSize="20" FontStyle="Italic" Grid.Column="1" Grid.ColumnSpan="2" Foreground="White"/>
+        <Label x:Name="AppNameLabel" Content="PlaylistConverter" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Center" FontSize="18" FontStyle="Italic" Grid.Column="1" Foreground="White"/>
         <Button x:Name="OpenButton" Grid.Column="1" Content="Open" Grid.Row="3" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="Black" VerticalAlignment="Center" Height="45" Margin="10,0,10,0"/>
         <Button x:Name="YoutubeLoginButton" Content="Youtube Login" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="Red" Click="YoutubeLoginButton_Click" Grid.Column="1" Grid.Row="1" VerticalContentAlignment="Center" VerticalAlignment="Center" Height="45" Margin="10,0,10,0"/>
         <Button x:Name="SpotifyLoginButton" Grid.Column="1" Content="Spotify Login" Grid.Row="2" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="#FF00FF10" Click="SpotifyLoginButton_Click" HorizontalContentAlignment="Center" Margin="10,0,10,0" Height="45" VerticalAlignment="Center"/>
