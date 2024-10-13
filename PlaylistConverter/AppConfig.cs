@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace PlaylistConverter
 {
-    internal class AppConfig
+    internal partial class AppConfig
     {
         //static readonly string jsonFileContent = File.ReadAllText("apikeys.json"); 
         //private static dynamic apiKeys;
@@ -14,6 +14,8 @@ namespace PlaylistConverter
         public static readonly string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         public static readonly string rootPath = Path.Combine(baseDirectory, @"..\..\..\");
         public static readonly string jsonFilePath = Path.Combine(rootPath, "apikeys.json");
+        public static readonly string spotifyTokenText = "Spotify Token";
+        public static readonly string youtubeTokenText = "Youtube Token";
         public static readonly string authIsValidText = " is Valid!";
         public static readonly string authIsExpiredText = " is Expired!";
         public static readonly string authIsNull = " is Invalid!";

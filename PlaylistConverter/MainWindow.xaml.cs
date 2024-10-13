@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static PlaylistConverter.AppConfig;
 
 namespace PlaylistConverter
 {
@@ -17,43 +19,101 @@ namespace PlaylistConverter
     /// </summary>
     public partial class MainWindow : Window
     {
+        // FileSystemWatcher for Tokens
+        private readonly FileSystemWatcher tokenFileWatcher = new(AppConfig.Tokens.tokenFolderDirectory)
+        {
+            Filter = "*.*", // ALL file types
+            NotifyFilter = NotifyFilters.LastAccess
+                           | NotifyFilters.LastWrite
+                           | NotifyFilters.FileName
+                           | NotifyFilters.DirectoryName,
+            EnableRaisingEvents = true,
+            InternalBufferSize = 64 * 1024 // 64kb
+        };
+
         public MainWindow()
         {
+            tokenFileWatcher.Changed += TokenFileWatcher_Changed;
+            tokenFileWatcher.Renamed += TokenFileWatcher_Renamed;
+            tokenFileWatcher.Deleted += TokenFileWatcher_Deleted;
+
             InitializeComponent();
+            ResetText();
+            CheckSavedAuthentications();
+        }
+
+        private void ResetText()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                SpotifyAuthStatusValueLabel.Content = AppConfig.spotifyTokenText;
+                YoutubeAuthStatusValueLabel.Content = AppConfig.youtubeTokenText;
+            });
+        }
+
+        private void TokenFileWatcher_Deleted(object sender, FileSystemEventArgs e)
+        {
+            Debug.WriteLine($"File {e.Name} from {e.FullPath}");
+            CheckSavedAuthentications();
+        }
+
+        private void TokenFileWatcher_Renamed(object sender, RenamedEventArgs e)
+        {
+            Debug.WriteLine($"File renamed from {e.OldName} to {e.Name}");
+            CheckSavedAuthentications();
+        }
+
+        private void TokenFileWatcher_Changed(object sender, FileSystemEventArgs e)
+        {
+            Debug.WriteLine($"File {e.ChangeType}: {e.FullPath}");
             CheckSavedAuthentications();
         }
 
         private void CheckSavedAuthentications()
         {
-            bool spotifyTokenValid = ValidateSpotifyToken();
-            bool youtubeTokenValid = ValidateYoutubeToken();
+            bool spotifyTokenValid = Dispatcher.Invoke(() => ValidateSpotifyToken());
+            bool youtubeTokenValid = Dispatcher.Invoke(() => ValidateYoutubeToken());
 
             // Spotify token validation
             if (spotifyTokenValid)
             {
-                SpotifyAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
-                SpotifyLoginButton.IsEnabled = false;
-                SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
+                Dispatcher.Invoke(() =>
+                {
+                    SpotifyAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
+                    SpotifyLoginButton.IsEnabled = false;
+                    SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
+                });
             }
             else
             {
-                SpotifyAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
-                SpotifyLoginButton.IsEnabled = true;
-                SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
+                
+
+                Dispatcher.Invoke(() =>
+                {
+                    SpotifyAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
+                    SpotifyLoginButton.IsEnabled = true;
+                    SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
+                });
             }
-            
+
             // Youtube token validation
             if (youtubeTokenValid)
             {
-                YoutubeAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
-                YoutubeLoginButton.IsEnabled = false;
-                YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
+                Dispatcher.Invoke(() => 
+                {
+                    YoutubeAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
+                    YoutubeLoginButton.IsEnabled = false;
+                    YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
+                });
             }
             else
             {
-                YoutubeAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
-                YoutubeLoginButton.IsEnabled = true;
-                YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
+                Dispatcher.Invoke(() => 
+                {
+                    YoutubeAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
+                    YoutubeLoginButton.IsEnabled = true;
+                    YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
+                });
             }
         }
 
@@ -67,6 +127,9 @@ namespace PlaylistConverter
             //{
             //    return true;
             //}
+
+            // Reset before adding extension
+            ResetText();
 
             // Precautions (Lead to false)
             if (spotifyToken != null)
