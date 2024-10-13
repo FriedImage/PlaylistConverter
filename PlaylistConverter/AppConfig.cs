@@ -14,6 +14,9 @@ namespace PlaylistConverter
         public static readonly string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         public static readonly string rootPath = Path.Combine(baseDirectory, @"..\..\..\");
         public static readonly string jsonFilePath = Path.Combine(rootPath, "apikeys.json");
+        public static readonly string authIsValidText = " is Valid!";
+        public static readonly string authIsExpiredText = " is Expired!";
+        public static readonly string authIsNull = " is Invalid!";
         private static readonly JObject jsonContent;
 
         static AppConfig()

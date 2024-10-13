@@ -28,19 +28,37 @@ namespace PlaylistConverter
             bool spotifyTokenValid = ValidateSpotifyToken();
             bool youtubeTokenValid = ValidateYoutubeToken();
 
+            // Spotify token validation
             if (spotifyTokenValid)
             {
+                SpotifyAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
                 SpotifyLoginButton.IsEnabled = false;
+                SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
+            }
+            else
+            {
+                SpotifyAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
+                SpotifyLoginButton.IsEnabled = true;
+                SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
             }
             
+            // Youtube token validation
             if (youtubeTokenValid)
             {
+                YoutubeAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
                 YoutubeLoginButton.IsEnabled = false;
+                YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
+            }
+            else
+            {
+                YoutubeAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
+                YoutubeLoginButton.IsEnabled = true;
+                YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
             }
         }
 
         // Checks if Spotify authentication is valid from current session
-        private static bool ValidateSpotifyToken()
+        private bool ValidateSpotifyToken()
         {
             var spotifyToken = AppConfig.Tokens.SpotifyToken.LoadFromFile();
 
@@ -56,26 +74,30 @@ namespace PlaylistConverter
                 if (spotifyToken.IsExpired)
                 {
                     Debug.WriteLine("Validation Failed: Spotify Token is Expired");
+                    SpotifyAuthStatusValueLabel.Content += AppConfig.authIsExpiredText;
                     return false;
                 }
                 else if (spotifyToken.RefreshToken == null)
                 {
                     Debug.WriteLine("Validation Failed: Spotify Token is NULL");
+                    SpotifyAuthStatusValueLabel.Content += AppConfig.authIsNull;
                     return false;
                 }
             }
             else
             {
                 Debug.WriteLine("Validation Failed: Spotify Token is NULL");
+                SpotifyAuthStatusValueLabel.Content += AppConfig.authIsNull;
                 return false;
             }
 
             // Token is valid
+            SpotifyAuthStatusValueLabel.Content += AppConfig.authIsValidText;
             return true;
         }
 
         // Checks if Youtube authentication is valid from current session
-        private static bool ValidateYoutubeToken()
+        private bool ValidateYoutubeToken()
         {
             var youtubeToken = AppConfig.Tokens.YoutubeToken.LoadFromFile();
 
@@ -91,21 +113,25 @@ namespace PlaylistConverter
                 if (youtubeToken.IsExpired)
                 {
                     Debug.WriteLine("Validation Failed: Youtube Token is Expired");
+                    YoutubeAuthStatusValueLabel.Content += AppConfig.authIsExpiredText;
                     return false;
                 }
                 else if (youtubeToken.RefreshToken == null)
                 {
                     Debug.WriteLine("Validation Failed: Youtube Token is NULL");
+                    YoutubeAuthStatusValueLabel.Content += AppConfig.authIsNull;
                     return false;
                 }
             }
             else
             {
                 Debug.WriteLine("Validation Failed: Youtube Token is NULL");
+                YoutubeAuthStatusValueLabel.Content += AppConfig.authIsNull;
                 return false;
             }
 
             // Token is valid
+            YoutubeAuthStatusValueLabel.Content += AppConfig.authIsValidText;
             return true;
         }
 
