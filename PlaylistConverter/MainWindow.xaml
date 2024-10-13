@@ -7,6 +7,12 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid x:Name="MainGrid">
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,10" StartPoint="0.5,0">
+                <GradientStop Color="#FF292938"/>
+                <GradientStop Offset="1" Color="#FF00D6FF"/>
+            </LinearGradientBrush>
+        </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="100*"/>
             <RowDefinition Height="50*"/>
@@ -14,28 +20,24 @@
             <RowDefinition Height="50*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="0.5*"/>
-            <ColumnDefinition Width="0.15*"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="20*"/>
+            <ColumnDefinition Width="30*"/>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="20*"/>
         </Grid.ColumnDefinitions>
-        <Grid.Background>
-            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                <GradientStop Color="#FF353865" Offset="0.75"/>
-                <GradientStop Color="#FF00D6FF" Offset="1"/>
-                <GradientStop Color="#FFD49AFF" Offset="0.96"/>
-            </LinearGradientBrush>
-        </Grid.Background>
-        <Label x:Name="AppNameLabel" Content="PlaylistConverter" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Center" FontSize="18" FontStyle="Italic" Grid.Column="1" Foreground="White"/>
-        <Button x:Name="OpenButton" Grid.Column="1" Content="Open" Grid.Row="3" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="Black" VerticalAlignment="Center" Height="45" Margin="10,0,10,0"/>
-        <Button x:Name="YoutubeLoginButton" Content="Youtube Login" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="Red" Click="YoutubeLoginButton_Click" Grid.Column="1" Grid.Row="1" VerticalContentAlignment="Center" VerticalAlignment="Center" Height="45" Margin="10,0,10,0"/>
-        <Button x:Name="SpotifyLoginButton" Grid.Column="1" Content="Spotify Login" Grid.Row="2" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="#FF00FF10" Click="SpotifyLoginButton_Click" HorizontalContentAlignment="Center" Margin="10,0,10,0" Height="45" VerticalAlignment="Center"/>
-        <Label x:Name="SpotifyAuthStatusValueLabel" Content="Spotify Auth Status" Grid.Row="2" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Left" Grid.Column="3" FontSize="10"/>
-        <Image x:Name="SpotifyLogoImage" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Source="/spotify_logo.png" Grid.Row="2" Margin="229,0,10,0"/>
-        <Label x:Name="YoutubeAuthStatusLabel" Content="Status:" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Right" Grid.Column="2" FontSize="10" Grid.Row="1"/>
-        <Image x:Name="YoutubeLogoImage" HorizontalAlignment="Right" Grid.Row="1" VerticalAlignment="Center" Width="32" Source="/youtube_logo.png" Margin="225,0,10,0"/>
-        <Label x:Name="SpotifyAuthStatusLabel" Content="Status:" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Right" Grid.Column="2" FontSize="10" Grid.Row="2"/>
-        <Label x:Name="YoutubeAuthStatusValueLabel" Content="Youtube Auth Status" Grid.Row="1" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Left" Grid.Column="3" FontSize="10"/>
+        <Label x:Name="AppNameLabel" Content="PlaylistConverter" FontSize="18" FontStyle="Italic" Grid.Column="1" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Button x:Name="OpenButton" Grid.Column="1" Content="Open" Grid.Row="3" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="Black" VerticalAlignment="Center" Height="40" Margin="80,0,80,0"/>
+        <Button x:Name="YoutubeLoginButton" VerticalAlignment="Center" VerticalContentAlignment="Center" Grid.Row="1" Content="Youtube Login" Grid.Column="1" Click="YoutubeLoginButton_Click" BorderThickness="1,1,1,1" BorderBrush="Red" Background="#FFDDDDDD" Margin="30,0,30,0" Height="40"/>
+        <Button x:Name="SpotifyLoginButton" Grid.Column="1" Content="Spotify Login" Grid.Row="2" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="#FF00FF10" Click="SpotifyLoginButton_Click" HorizontalContentAlignment="Center" VerticalAlignment="Center" Height="40" Margin="30,0,30,0"/>
+        <Label x:Name="SpotifyAuthStatusValueLabel" Content="Spotify Auth Status" Grid.Row="2" VerticalAlignment="Center" Foreground="White" Grid.Column="3" FontSize="10" Height="23" HorizontalAlignment="Left"/>
+        <Label x:Name="YoutubeAuthStatusLabel" Content="Status:" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Right" Grid.Column="2" FontSize="10" Grid.Row="1" Height="24" Width="39"/>
+        <Label x:Name="SpotifyAuthStatusLabel" Content="Status:" VerticalAlignment="Center" Foreground="White" HorizontalAlignment="Right" Grid.Column="2" FontSize="10" Grid.Row="2" Height="23" Width="39"/>
+        <Label x:Name="YoutubeAuthStatusValueLabel" Content="Youtube Auth Status" Grid.Row="1" VerticalAlignment="Center" Foreground="White" Grid.Column="3" FontSize="10" Height="24" HorizontalAlignment="Left"/>
+        <Image x:Name="SpotifyLogoImage" HorizontalAlignment="Right" Height="32" Grid.Row="2" VerticalAlignment="Center" Width="32" Source="/img/spotify_logo.png" Margin="0,0,10,0"/>
+        <Image x:Name="YoutubeLogoImage" HorizontalAlignment="Right" Height="32" Grid.Row="1" VerticalAlignment="Center" Width="32" Source="/img/youtube_logo.png" Margin="0,0,10,0"/>
+        <Image x:Name="YoutubeAuthStatusValidImage" Grid.Column="4" HorizontalAlignment="Left" Height="28" Grid.Row="1" VerticalAlignment="Center" Width="28" Source="/img/invalid.png" Margin="10,0,10,0"/>
+        <Image x:Name="SpotifyAuthStatusValidImage" Height="28" Width="28" HorizontalAlignment="Left" VerticalAlignment="Center" Source="/img/invalid.png" Grid.Row="2" Grid.Column="4" Margin="10,0,10,0"/>
 
     </Grid>
 </Window>
