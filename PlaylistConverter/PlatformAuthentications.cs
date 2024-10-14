@@ -30,7 +30,10 @@ namespace PlaylistConverter
             // User log-in
             public static async Task<SpotifyClient> AuthenticateUserAsync()
             {
+                Debug.WriteLine("Starting Spotify authentication");
                 var spotifyToken = SpotifyToken.LoadFromFile();
+                Debug.WriteLine("This is the token: " + spotifyToken);
+                Debug.WriteLine(spotifyToken != null ? "Token loaded successfully" : "No token found");
 
                 if (spotifyToken != null)
                 {
@@ -202,6 +205,9 @@ namespace PlaylistConverter
                 // Start local server to listen for the authorization code
                 string authCode = await LocalServer.StartServer(staticPort);
 
+                // Stop server after getting authCode (in LocalServer)
+                //await LocalServer.StopServer();
+
                 // Use the auth code to get the access token
                 var tokenRequest = new SpotifyAPI.Web.AuthorizationCodeTokenRequest(
                     AppConfig.SpotifyAPI.GetClientId(),
@@ -211,7 +217,7 @@ namespace PlaylistConverter
                 );
 
                 var tokenResponse = await new OAuthClient().RequestToken(tokenRequest);
-
+                
                 // Create and save the token information
                 var newToken = new SpotifyToken
                 {

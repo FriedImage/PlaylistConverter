@@ -33,9 +33,9 @@ namespace PlaylistConverter
             // folder containing the tokens
             public static string tokenFolderDirectory = Path.Combine(rootPath, "tokens");
             // type: JSON
-            public static readonly string spotifyTokenPath = Path.Combine(tokenFolderDirectory, "spotify_token.json");
+            public static readonly string spotifyTokenPath = Path.Combine(GetTokenStorageFolderDirectory(), "spotify_token.json");
             // type: TOKENRESPONSE-USER
-            public static readonly string youtubeTokenPath = Path.Combine(tokenFolderDirectory, "youtube_token.TokenResponse-user");
+            public static readonly string youtubeTokenPath = Path.Combine(GetTokenStorageFolderDirectory(), "youtube_token.TokenResponse-user");
 
             public static string GetTokenStorageFolderDirectory()
             {

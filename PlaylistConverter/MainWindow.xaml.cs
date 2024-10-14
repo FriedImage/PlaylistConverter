@@ -31,6 +31,9 @@ namespace PlaylistConverter
             InternalBufferSize = 64 * 1024 // 64kb
         };
 
+        // DirectoryInfo to represent the token folder
+        private readonly DirectoryInfo tokenFolderDirectory = new(Tokens.GetTokenStorageFolderDirectory());
+
         public MainWindow()
         {
             tokenFileWatcher.Changed += TokenFileWatcher_Changed;
@@ -39,6 +42,7 @@ namespace PlaylistConverter
 
             InitializeComponent();
             ResetText();
+            UpdateClearTokensButton();
             CheckSavedAuthentications();
         }
 
@@ -51,21 +55,34 @@ namespace PlaylistConverter
             });
         }
 
+        private void UpdateClearTokensButton()
+        {
+            int tokenFileCount = tokenFolderDirectory.GetFiles().Length;
+
+            Dispatcher.Invoke(() =>
+            {
+                ClearTokensButton.IsEnabled = tokenFileCount > 0;
+            });
+        }
+
         private void TokenFileWatcher_Deleted(object sender, FileSystemEventArgs e)
         {
             Debug.WriteLine($"File {e.Name} from {e.FullPath}");
+            UpdateClearTokensButton();
             CheckSavedAuthentications();
         }
 
         private void TokenFileWatcher_Renamed(object sender, RenamedEventArgs e)
         {
             Debug.WriteLine($"File renamed from {e.OldName} to {e.Name}");
+            UpdateClearTokensButton();
             CheckSavedAuthentications();
         }
 
         private void TokenFileWatcher_Changed(object sender, FileSystemEventArgs e)
         {
             Debug.WriteLine($"File {e.ChangeType}: {e.FullPath}");
+            UpdateClearTokensButton();
             CheckSavedAuthentications();
         }
 
@@ -235,6 +252,36 @@ namespace PlaylistConverter
             }
 
             CheckSavedAuthentications();
+        }
+
+        private void ClearTokensButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get all files in the token storage folder
+                string[] filePaths = Directory.GetFiles(Tokens.GetTokenStorageFolderDirectory());
+
+                // List of excluded filenames or partial matches
+                string[] excluded = [ "temp" ];
+
+                var filePathsExcluded = filePaths.Where(fp => excluded.All(ex => !fp.Contains(ex)));
+
+                if (filePathsExcluded.Any())
+                {
+                    // Delete files that are not in the excluded list
+                    foreach (string filePath in filePathsExcluded)
+                    {
+                        File.Delete(filePath);
+                        Debug.WriteLine($"Token in {filePath} Deleted");
+                    }
+                }
+
+                UpdateClearTokensButton();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error clearing tokens: {ex.Message}");
+            }
         }
     }
 }
