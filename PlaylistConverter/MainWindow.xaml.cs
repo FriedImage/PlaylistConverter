@@ -34,6 +34,7 @@ namespace PlaylistConverter
         // DirectoryInfo to represent the token folder
         private readonly DirectoryInfo tokenFolderDirectory = new(Tokens.GetTokenStorageFolderDirectory());
 
+        // Constructor
         public MainWindow()
         {
             tokenFileWatcher.Changed += TokenFileWatcher_Changed;
@@ -258,24 +259,15 @@ namespace PlaylistConverter
         {
             try
             {
-                // Get all files in the token storage folder
-                string[] filePaths = Directory.GetFiles(Tokens.GetTokenStorageFolderDirectory());
+                var files = tokenFolderDirectory.GetFiles();
 
-                // List of excluded filenames or partial matches
-                string[] excluded = [ "temp" ];
-
-                var filePathsExcluded = filePaths.Where(fp => excluded.All(ex => !fp.Contains(ex)));
-
-                if (filePathsExcluded.Any())
+                foreach (FileInfo file in files)
                 {
-                    // Delete files that are not in the excluded list
-                    foreach (string filePath in filePathsExcluded)
-                    {
-                        File.Delete(filePath);
-                        Debug.WriteLine($"Token in {filePath} Deleted");
-                    }
+                    file.Delete();
+                    Debug.WriteLine($"Deleted token-file: {file.Name}");
                 }
 
+                // Disable button
                 UpdateClearTokensButton();
             }
             catch (Exception ex)
