@@ -222,11 +222,11 @@ namespace PlaylistConverter
 
             if (youtubeService != null)
             {
-                MessageBox.Show("Youtube Login Successful!");
+                MessageBox.Show("Youtube Authentication Successful!", "Login");
             }
             else
             {
-                MessageBox.Show("Youtube Login Failed");
+                MessageBox.Show("Youtube Authentication Failed", "Login");
             }
 
             CheckSavedAuthentications();
@@ -245,11 +245,11 @@ namespace PlaylistConverter
                     Debug.WriteLine($"Spotify Playlist: {playlist.Name}");
                 }
 
-                MessageBox.Show("Spotify Login Successful!");
+                MessageBox.Show("Spotify Authentication Successful!", "Login");
             }
             else
             {
-                MessageBox.Show("Spotify Login Failed");
+                MessageBox.Show("Spotify Authentication Failed", "Login");
             }
 
             CheckSavedAuthentications();
