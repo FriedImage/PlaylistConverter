@@ -23,13 +23,59 @@ namespace PlaylistConverter
         private static readonly JObject jsonContent;
         public static List<string> SelectedPlatforms { get; set; } = [];
         public static string ConfigJsonFilePath { get; set; } = Path.Combine(configJsonDirectory, "config.json");
-        public static string YoutubeJsonFilePath { get; set; } = GetYoutubeClientSecretsFile();
-        //public static bool ConfigValid { get; set; } = true;
+        public static string YoutubeJsonFilePath { get; set; }
+        public static bool ConfigValid { get; set; }
 
         static AppConfig()
         {
             string jsonFileContent = File.ReadAllText(jsonFilePath); // Reads content from json file
             jsonContent = JObject.Parse(jsonFileContent); // Set JObject data to apikey.json type data
+            YoutubeJsonFilePath = GetYoutubeClientSecretsFile();
+            ConfigValid = CheckExistingConfiguration();
+        }
+
+        private static bool CheckExistingConfiguration()
+        {
+            if (File.Exists(ConfigJsonFilePath))
+            {
+                var configJson = JObject.Parse(File.ReadAllText(ConfigJsonFilePath));
+
+                if (configJson["spotify"] != null && ValidateSpotifyConfig())
+                {
+                    SelectedPlatforms.Add("Spotify");
+                }
+            }
+            if (File.Exists(YoutubeJsonFilePath))
+            {
+                var youtubeConfigJson = JObject.Parse(File.ReadAllText(YoutubeJsonFilePath));
+
+                if (youtubeConfigJson["web"] != null && ValidateYouTubeConfig())
+                {
+                    SelectedPlatforms.Add("YouTube");
+                }
+            }
+
+            Debug.WriteLine($"Platforms added: {SelectedPlatforms.Count}");
+
+            return SelectedPlatforms.Count >= 2;
+        }
+
+        private static bool ValidateSpotifyConfig()
+        {
+            var configJson = JObject.Parse(File.ReadAllText(ConfigJsonFilePath));
+            var spotifyConfig = configJson["spotify"];
+            return spotifyConfig != null &&
+                   spotifyConfig["client_id"]?.ToString().Length == 32 &&
+                   spotifyConfig["client_secret"]?.ToString().Length == 32;
+        }
+
+        private static bool ValidateYouTubeConfig()
+        {
+            var youtubeConfigJson = JObject.Parse(File.ReadAllText(YoutubeJsonFilePath));
+            var youtubeConfig = youtubeConfigJson["web"];
+            return youtubeConfig != null &&
+                   youtubeConfig["client_id"]?.ToString().EndsWith(".apps.googleusercontent.com") == true &&
+                   youtubeConfig["client_secret"]?.ToString().Length == 35;
         }
 
         // Set the file path of Youtube's client_secret if it already exists

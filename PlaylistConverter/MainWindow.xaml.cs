@@ -43,7 +43,6 @@ namespace PlaylistConverter
             tokenFileWatcher.Deleted += TokenFileWatcher_Deleted;
 
             InitializeComponent();
-            CheckExistingConfiguration();
             InitializeConfigurationManager();
 
             ResetText();
@@ -51,50 +50,9 @@ namespace PlaylistConverter
             CheckSavedAuthentications();
         }
 
-        private static bool CheckExistingConfiguration()
-        {
-            //if (!File.Exists(ConfigJsonFilePath)) return false;
-            //if (!File.Exists(YoutubeJsonFilePath)) return false;
-
-            if (File.Exists(ConfigJsonFilePath))
-            {
-                var configJson = JObject.Parse(File.ReadAllText(ConfigJsonFilePath));
-
-                if (configJson["spotify"] != null && IsValidSpotifyConfig(configJson["spotify"]!))
-                {
-                    SelectedPlatforms.Add("Spotify");
-                }
-            }
-            if (File.Exists(YoutubeJsonFilePath))
-            {
-                var youtubeConfigJson = JObject.Parse(File.ReadAllText(YoutubeJsonFilePath));
-
-                if (youtubeConfigJson["web"] != null && IsValidYouTubeConfig(youtubeConfigJson["web"]!))
-                {
-                    SelectedPlatforms.Add("YouTube");
-                }
-            }
-
-            Debug.WriteLine($"Platforms added: {SelectedPlatforms.Count}");
-
-            return SelectedPlatforms.Count >= 2;
-        }
-
-        private static bool IsValidSpotifyConfig(JToken spotifyConfig)
-        {
-            return spotifyConfig["client_id"]?.ToString().Length == 32 &&
-                   spotifyConfig["client_secret"]?.ToString().Length == 35;
-        }
-
-        private static bool IsValidYouTubeConfig(JToken youtubeConfig)
-        {
-            return youtubeConfig["client_id"]?.ToString().EndsWith(".apps.googleusercontent.com") == true &&
-                   youtubeConfig["client_secret"]?.ToString().Length == 35;
-        }
-
         private void InitializeConfigurationManager()
         {
-            if (!CheckExistingConfiguration())
+            if (!AppConfig.ConfigValid)
             {
                 MessageBox.Show("No Token Configuration file found.\n\nTo use this application you must create/include a Client ID and Client Secret for each Affected Platforms Chosen.", "Token Configuration not found");
 

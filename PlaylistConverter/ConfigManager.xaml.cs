@@ -28,9 +28,8 @@ namespace PlaylistConverter
         private static bool spotifyClientIdValid = false;
         private static bool spotifySecretValid = false;
         private static bool youtubeSecretsValid = false;
-        private static bool configValid = true;
-        private static string YoutubeJsonFileName = string.Empty;
-        private static string YoutubeJsonFilePicked = string.Empty;
+        private static string youtubeJsonFileName = string.Empty;
+        private static string youtubeJsonFilePicked = string.Empty;
         private JObject config = [];
 
         public ConfigManager()
@@ -94,11 +93,11 @@ namespace PlaylistConverter
             // Ensure that at least two platforms are selected
             if (AppConfig.SelectedPlatforms.Count < 2)
             {
-                configValid = false;
+                AppConfig.ConfigValid = false;
                 SaveButton.IsEnabled = false;
                 return;
             }
-            configValid = true;
+            AppConfig.ConfigValid = true;
 
             // Turn false if selected platforms don't match criteria
             // Spotify
@@ -106,7 +105,7 @@ namespace PlaylistConverter
             {
                 if (!spotifyClientIdValid || !spotifySecretValid)
                 {
-                    configValid = false;
+                    AppConfig.ConfigValid = false;
                 }
             }
 
@@ -115,18 +114,18 @@ namespace PlaylistConverter
             {
                 if (!youtubeSecretsValid)
                 {
-                    configValid = false;
+                    AppConfig.ConfigValid = false;
                 }
             }
 
 
             // If at least 2 platforms are selected and all selected platforms are valid, enable the button
-            SaveButton.IsEnabled = configValid;
+            SaveButton.IsEnabled = AppConfig.ConfigValid;
         }
 
         private void UpdateSaveButtonTextBlock()
         {
-            if (configValid)
+            if (AppConfig.ConfigValid)
             {
                 SaveButtonTextBlock.Text = "Ready to save!";
             }
@@ -238,21 +237,21 @@ namespace PlaylistConverter
 
             if (result == true)
             {
-                YoutubeJsonFilePicked = fileDialog.FileName;
-                youtubeSecretsValid = ValidateYoutubeClientSecrets(YoutubeJsonFilePicked);
+                youtubeJsonFilePicked = fileDialog.FileName;
+                youtubeSecretsValid = ValidateYoutubeClientSecrets(youtubeJsonFilePicked);
                 //AppConfig.YoutubeJsonFilePath = fileDialog.FileName; // Sets the user's selected file as a path (not needed)
                 
                 if (!youtubeSecretsValid)
                 {
-                    YoutubeJsonFilePicked = string.Empty;
+                    youtubeJsonFilePicked = string.Empty;
                     ResetFilePicker();
                 } 
                 else
                 {
-                    YoutubeJsonFileName = fileDialog.SafeFileName;
+                    youtubeJsonFileName = fileDialog.SafeFileName;
                     YoutubeClientSecretStatusImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
                     YoutubeClientSecretStatusImage.ToolTip = $"File {validStatus}";
-                    FileTxtTextBlock.Text = YoutubeJsonFileName;
+                    FileTxtTextBlock.Text = youtubeJsonFileName;
                 }
             }
 
@@ -391,14 +390,14 @@ namespace PlaylistConverter
             // Youtube
             if (AppConfig.SelectedPlatforms.Contains("Youtube"))
             {
-                AppConfig.YoutubeJsonFilePath = $"{AppConfig.configJsonDirectory}\\{YoutubeJsonFileName}"; // Sets path to config's directory + selected file from user (name)
+                AppConfig.YoutubeJsonFilePath = $"{AppConfig.configJsonDirectory}\\{youtubeJsonFileName}"; // Sets path to config's directory + selected file from user (name)
 
                 config["youtube"] = new JObject
                 {
                     { "config_path", AppConfig.YoutubeJsonFilePath }
                 };
 
-                File.Copy(YoutubeJsonFilePicked, AppConfig.YoutubeJsonFilePath);
+                File.Copy(youtubeJsonFilePicked, AppConfig.YoutubeJsonFilePath);
             }
 
             // -youtube
@@ -409,9 +408,9 @@ namespace PlaylistConverter
         // Load-up the MainWindow
         private void InitializeMainWindow()
         {
-            Debug.WriteLine($"Is config valid? {configValid}");
+            Debug.WriteLine($"Is config valid? {AppConfig.ConfigValid}");
 
-            if (configValid)
+            if (AppConfig.ConfigValid)
             {
                 string selectedPlatforms = string.Join(" ", AppConfig.SelectedPlatforms);
 
