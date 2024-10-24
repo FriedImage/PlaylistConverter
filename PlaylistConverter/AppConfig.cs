@@ -3,6 +3,8 @@ using System.IO;
 using Google.Apis.Auth.OAuth2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SpotifyAPI.Web;
+using SpotifyAPI.Web.Auth;
 
 namespace PlaylistConverter
 {
@@ -25,6 +27,14 @@ namespace PlaylistConverter
         public static string ConfigJsonFilePath { get; set; } = Path.Combine(configJsonDirectory, "config.json");
         public static string YoutubeJsonFilePath { get; set; }
         public static bool ConfigValid { get; set; }
+        public static string SpotifyClientId { get; set; }
+        public static string SpotifyClientSecret { get; set; }
+
+        // folder containing the tokens
+        public static string tokenFolderDirectory = Path.Combine(rootPath, "tokens");
+        public static readonly string spotifyTokenPath = Path.Combine(tokenFolderDirectory, "spotify_token.json");
+
+        //private static readonly EmbedIOAuthServer _spotifyserver = new(new Uri("http://localhost:5543/callback"), 5543);
 
         static AppConfig()
         {
@@ -32,6 +42,8 @@ namespace PlaylistConverter
             jsonContent = JObject.Parse(jsonFileContent); // Set JObject data to apikey.json type data
             YoutubeJsonFilePath = GetYoutubeClientSecretsFile();
             ConfigValid = CheckExistingConfiguration();
+            SpotifyClientId = GetSpotifyClientIdFromConfig(ConfigJsonFilePath);
+            SpotifyClientSecret = GetSpotifyClientSecretFromConfig(ConfigJsonFilePath);
         }
 
         private static bool CheckExistingConfiguration()
@@ -98,6 +110,38 @@ namespace PlaylistConverter
             }
 
             // File not found
+            return string.Empty;
+        }
+
+        private static string GetSpotifyClientIdFromConfig(string configFilePath)
+        {
+            if (File.Exists(configFilePath))
+            {
+                JObject configFile = JObject.Parse(File.ReadAllText(configFilePath));
+                var clientId = configFile["spotify"]?["client_id"]?.ToString();
+
+                if (!string.IsNullOrEmpty(clientId) && ValidateSpotifyConfig())
+                {
+                    return clientId;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static string GetSpotifyClientSecretFromConfig(string configFilePath)
+        {
+            if (File.Exists(configFilePath))
+            {
+                JObject configFile = JObject.Parse(File.ReadAllText(configFilePath));
+                var clientSecret = configFile["spotify"]?["client_secret"]?.ToString();
+
+                if (!string.IsNullOrEmpty(clientSecret) && ValidateSpotifyConfig())
+                {
+                    return clientSecret;
+                }
+            }
+
             return string.Empty;
         }
 

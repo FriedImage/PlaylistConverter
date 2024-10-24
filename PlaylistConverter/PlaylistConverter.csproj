@@ -11,7 +11,8 @@
   <ItemGroup>
     <PackageReference Include="Google.Apis.YouTube.v3" Version="1.68.0.3556" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="SpotifyAPI.Web" Version="7.1.1" />
+    <PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />
+    <PackageReference Include="SpotifyAPI.Web.Auth" Version="7.2.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
+using SpotifyAPI.Web.Http;
+using SpotifyAPI.Web;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -12,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static PlaylistConverter.AppConfig;
+using Newtonsoft.Json;
 
 namespace PlaylistConverter
 {
@@ -155,7 +158,7 @@ namespace PlaylistConverter
         // Checks if Spotify authentication is valid from current session
         private bool ValidateSpotifyToken()
         {
-            var spotifyToken = AppConfig.Tokens.SpotifyToken.LoadFromFile();
+            var spotifyToken = SpotifyAuthentication.LoadFile();
 
             // One-way condition
             //if (spotifyToken != null && !spotifyToken.IsExpired && !string.IsNullOrEmpty(spotifyToken.RefreshToken))
@@ -251,25 +254,21 @@ namespace PlaylistConverter
 
         private async void SpotifyLoginButton_Click(object sender, RoutedEventArgs e)
         {
-            var spotifyClient = await PlatformAuthentications.SpotifyAuthentication.AuthenticateUserAsync();
-
-            if (spotifyClient != null)
-            {
-                var playlists = await spotifyClient.Playlists.CurrentUsers();
-
-                foreach (var playlist in playlists.Items)
-                {
-                    Debug.WriteLine($"Spotify Playlist: {playlist.Name}");
-                }
-
-                MessageBox.Show("Spotify Authentication Successful!", "Login");
-            }
-            else
-            {
-                MessageBox.Show("Spotify Authentication Failed", "Login");
-            }
+            InitializeSpotifyAuthentication();
 
             CheckSavedAuthentications();
+        }
+
+        private async void InitializeSpotifyAuthentication()
+        {
+            try
+            {
+                await SpotifyAuthentication.CheckSavedTokensAndAuthenticate();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error during Spotify authentication: {ex.Message}");
+            }
         }
 
         private void ClearTokensButton_Click(object sender, RoutedEventArgs e)
