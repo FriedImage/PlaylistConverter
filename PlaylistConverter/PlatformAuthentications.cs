@@ -27,6 +27,16 @@ namespace PlaylistConverter
                 return new SpotifyClient(config.WithToken(response.AccessToken));
             }
 
+            public static async Task TestSpotifyRequest()
+            {
+                var config = SpotifyClientConfig.CreateDefault();
+
+                var request = new ClientCredentialsRequest("CLIENT_ID", "CLIENT_SECRET");
+                var response = await new OAuthClient(config).RequestToken(request);
+
+                var spotify = new SpotifyClient(config.WithToken(response.AccessToken));
+            }
+
             // User log-in
             public static async Task<SpotifyClient> AuthenticateUserAsync()
             {

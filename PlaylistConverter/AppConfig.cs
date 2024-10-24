@@ -14,17 +14,45 @@ namespace PlaylistConverter
         public static readonly string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         public static readonly string rootPath = Path.Combine(baseDirectory, @"..\..\..\");
         public static readonly string jsonFilePath = Path.Combine(rootPath, "apikeys.json");
+        public static readonly string configJsonDirectory = Path.Combine(rootPath, "settings");
         public static readonly string spotifyTokenText = "Spotify Token";
         public static readonly string youtubeTokenText = "Youtube Token";
         public static readonly string authIsValidText = " is Valid!";
         public static readonly string authIsExpiredText = " is Expired!";
         public static readonly string authIsNull = " is Invalid!";
         private static readonly JObject jsonContent;
+        public static List<string> SelectedPlatforms { get; set; } = [];
+        public static string ConfigJsonFilePath { get; set; } = Path.Combine(configJsonDirectory, "config.json");
+        public static string YoutubeJsonFilePath { get; set; } = GetYoutubeClientSecretsFile();
+        //public static bool ConfigValid { get; set; } = true;
 
         static AppConfig()
         {
             string jsonFileContent = File.ReadAllText(jsonFilePath); // Reads content from json file
             jsonContent = JObject.Parse(jsonFileContent); // Set JObject data to apikey.json type data
+        }
+
+        // Set the file path of Youtube's client_secret if it already exists
+        private static string GetYoutubeClientSecretsFile()
+        {
+            if (File.Exists(ConfigJsonFilePath))
+            {
+                // Load config.json and parse it
+                var configData = JObject.Parse(File.ReadAllText(ConfigJsonFilePath));
+                Debug.WriteLine($"Config found at: {ConfigJsonFilePath}");
+
+                // Check if the YouTube config path exists
+                var youtubeConfigPath = configData["youtube"]?["config_path"]?.ToString();
+
+                if (!string.IsNullOrEmpty(youtubeConfigPath) && youtubeConfigPath.EndsWith(".json"))
+                {
+                    Debug.WriteLine($"Youtube Config (secrets) found at: {youtubeConfigPath}");
+                    return youtubeConfigPath;
+                }
+            }
+
+            // File not found
+            return string.Empty;
         }
 
         // Contains all the Tokens used
