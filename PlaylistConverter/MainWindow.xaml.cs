@@ -37,6 +37,8 @@ namespace PlaylistConverter
 
         // DirectoryInfo to represent the token folder
         private readonly DirectoryInfo tokenFolderDirectory = new(Tokens.GetTokenStorageFolderDirectory());
+        private YoutubeAuthentication? youtubeAuth; // not sure if needed
+        private SpotifyAuthentication? spotifyAuth;
 
         // Constructor
         public MainWindow()
@@ -238,37 +240,50 @@ namespace PlaylistConverter
 
         private async void YoutubeLoginButton_Click(object sender, RoutedEventArgs e)
         {
-            var youtubeService = await PlatformAuthentications.YoutubeAuthentication.AuthenticateAsync();
+            try
+            {
+                var service = await YoutubeAuthentication.AuthenticateAsyncLocal();
 
-            if (youtubeService != null)
-            {
-                MessageBox.Show("Youtube Authentication Successful!", "Login");
+                // Requests
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Youtube Authentication Failed", "Login");
+                Debug.WriteLine($"Error during Spotify authentication: {ex.Message}");
             }
+            
+
+
+            // Request - Response example (Playlist Titles)
+            //var getPlaylistsRequest = service.Playlists.List("snippet");
+            //getPlaylistsRequest.Mine = true;
+            //var getPlaylistsResponse = getPlaylistsRequest.ExecuteAsync();
+            //if (getPlaylistsResponse != null)
+            //{
+            //    foreach (var item in getPlaylistsResponse.Result.Items)
+            //    {
+            //        var playListName = item.Snippet.Title;
+
+            //        Debug.WriteLine(playListName);
+            //    }
+            //}
 
             CheckSavedAuthentications();
         }
 
         private async void SpotifyLoginButton_Click(object sender, RoutedEventArgs e)
         {
-            InitializeSpotifyAuthentication();
-
-            CheckSavedAuthentications();
-        }
-
-        private async void InitializeSpotifyAuthentication()
-        {
             try
             {
-                await SpotifyAuthentication.CheckSavedTokensAndAuthenticate();
+                spotifyAuth = new SpotifyAuthentication();
+
+                await spotifyAuth.CheckSavedTokensAndAuthenticate();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error during Spotify authentication: {ex.Message}");
             }
+
+            CheckSavedAuthentications();
         }
 
         private void ClearTokensButton_Click(object sender, RoutedEventArgs e)

@@ -12,7 +12,7 @@ using static PlaylistConverter.AppConfig.Tokens;
 
 namespace PlaylistConverter
 {
-    internal static class SpotifyAuthentication
+    internal class SpotifyAuthentication
     {
         private static readonly EmbedIOAuthServer _server = new(new Uri("http://localhost:5543/callback"), 5543);
         private static string _codeVerifier;
@@ -88,7 +88,7 @@ namespace PlaylistConverter
             await File.WriteAllTextAsync(AppConfig.spotifyTokenPath, json);  // Save tokens in a file for future use
         }
 
-        public static async Task CheckSavedTokensAndAuthenticate()
+        public async Task CheckSavedTokensAndAuthenticate()
         {
             if (File.Exists(AppConfig.spotifyTokenPath))
             {
