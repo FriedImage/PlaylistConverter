@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace PlaylistConverter
 {
+    // Used for Local Youtube Authentication Process
     internal class CustomLocalServerCodeReceiver : ICodeReceiver
     {
         private readonly int _port;

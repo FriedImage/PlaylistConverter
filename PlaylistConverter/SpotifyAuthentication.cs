@@ -8,7 +8,7 @@ using SpotifyAPI.Web.Auth;
 using System.Diagnostics;
 using System.IO;
 using Newtonsoft.Json;
-using static PlaylistConverter.AppConfig.Tokens;
+using static PlaylistConverter.AppConfig.TokenStorage;
 
 namespace PlaylistConverter
 {
@@ -26,9 +26,9 @@ namespace PlaylistConverter
             if (_spotifyClient != null) return _spotifyClient;
 
             // If tokens exist, load and use them to create the client
-            if (File.Exists(AppConfig.spotifyTokenPath))
+            if (File.Exists(AppConfig.TokenStorage.spotifyTokenPath))
             {
-                var json = await File.ReadAllTextAsync(AppConfig.spotifyTokenPath);
+                var json = await File.ReadAllTextAsync(AppConfig.TokenStorage.spotifyTokenPath);
                 var tokenResponse = JsonConvert.DeserializeObject<PKCETokenResponse>(json);
 
                 var authenticator = new PKCEAuthenticator(AppConfig.SpotifyClientId, tokenResponse);
@@ -115,7 +115,7 @@ namespace PlaylistConverter
         private static async Task SaveTokensAsync(PKCETokenResponse tokenResponse)
         {
             var json = JsonConvert.SerializeObject(tokenResponse);
-            await File.WriteAllTextAsync(AppConfig.spotifyTokenPath, json);  // Save tokens in a file for future use
+            await File.WriteAllTextAsync(AppConfig.TokenStorage.spotifyTokenPath, json);  // Save tokens in a file for future use
         }
 
         // GetSpotifyClient() is newer
@@ -144,17 +144,6 @@ namespace PlaylistConverter
         //        await StartSpotifyAuthentication();  // No saved tokens, start the authentication flow
         //    }
         //}
-
-        public static PKCETokenResponse? LoadFile()
-        {
-            if (File.Exists(spotifyTokenPath))
-            {
-                var json = File.ReadAllText(spotifyTokenPath);
-                return JsonConvert.DeserializeObject<PKCETokenResponse>(json);
-            }
-
-            return null;
-        }
     }
 
 }

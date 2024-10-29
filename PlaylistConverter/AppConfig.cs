@@ -4,7 +4,6 @@ using Google.Apis.Auth.OAuth2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SpotifyAPI.Web;
-using SpotifyAPI.Web.Auth;
 
 namespace PlaylistConverter
 {
@@ -29,11 +28,6 @@ namespace PlaylistConverter
         public static bool ConfigValid { get; set; }
         public static string SpotifyClientId { get; set; }
         public static string SpotifyClientSecret { get; set; }
-
-        // folder containing the tokens
-        public static string tokenFolderDirectory = Path.Combine(rootPath, "tokens");
-        public static readonly string spotifyTokenPath = Path.Combine(tokenFolderDirectory, "spotify_token.json");
-        public static readonly string youtubeTokenPath = Path.Combine(tokenFolderDirectory, "Google.Apis.Auth.OAuth2.Responses.TokenResponse-user");
 
         //private static readonly EmbedIOAuthServer _spotifyserver = new(new Uri("http://localhost:5543/callback"), 5543);
 
@@ -147,7 +141,7 @@ namespace PlaylistConverter
         }
 
         // Contains all the Tokens used
-        public static class Tokens
+        public static class TokenStorage
         {
             // folder containing the tokens
             public static string tokenFolderDirectory = Path.Combine(rootPath, "tokens");
@@ -177,103 +171,27 @@ namespace PlaylistConverter
                 }
             }
 
-            // Token config for Spotify
-            public class SpotifyToken
+            public static UserCredential? LoadYoutubeToken()
             {
-                // Spotify's token properties
-                public required string AccessToken { get; set; }
-                public required string RefreshToken { get; set; }
-                public DateTime ExpiresAt { get; set; }
-                public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
-
-                public static SpotifyToken? LoadFromFile()
+                if (File.Exists(youtubeTokenPath))
                 {
-                    if (TokenExists())
-                    {
-                        var json = File.ReadAllText(spotifyTokenPath);
-                        return JsonConvert.DeserializeObject<SpotifyToken>(json);
-                    }
-
-                    return null;
+                    var json = File.ReadAllText(youtubeTokenPath);
+                    return JsonConvert.DeserializeObject<UserCredential>(json);
                 }
 
-                public static bool TokenExists() => File.Exists(spotifyTokenPath);
-
-                // saves token-file at class-path
-                public void SaveToFile()
-                {
-                    var json = JsonConvert.SerializeObject(this);
-
-                    Debug.WriteLine($"Saving spotify token to path: {spotifyTokenPath}");
-
-                    File.WriteAllText(spotifyTokenPath, json);
-                }
+                return null;
             }
 
-            // Token config for Youtube
-            public class YoutubeToken
+            public static PKCETokenResponse? LoadSpotifyToken()
             {
-                // Youtube token properties
-                public required string AccessToken { get; set; }
-                public required string RefreshToken { get; set; }
-                public DateTime IssuedUtc { get; set; }
-                public long? ExpiresInSeconds { get; set; }
-                public bool IsExpired => DateTime.UtcNow > IssuedUtc.AddSeconds((double)ExpiresInSeconds);
-
-                // Gets a TOKENRESPONSE-USER type file
-                public static YoutubeToken? LoadFromFile()
+                if (File.Exists(spotifyTokenPath))
                 {
-                    if (TokenExists())
-                    {
-                        var json = File.ReadAllText(youtubeTokenPath);
-                        return JsonConvert.DeserializeObject<YoutubeToken>(json);
-                    }
-
-                    return null;
+                    var json = File.ReadAllText(spotifyTokenPath);
+                    return JsonConvert.DeserializeObject<PKCETokenResponse>(json);
                 }
 
-                public static bool TokenExists() => File.Exists(youtubeTokenPath);
-
-                //public static bool TokenExpired()
-                //{
-                //    DateTime issuedTime = DateTime.Parse(token.IssuedUtc);
-                //    return DateTime.UtcNow > issuedTime.AddSeconds(token.ExpiresInSeconds ?? 0);
-                //}
-
-                // Save token-file at class-path
-                public void SaveToFile()
-                {
-                    Debug.WriteLine($"Saving youtube token to path: {youtubeTokenPath}");
-
-                    var json = JsonConvert.SerializeObject(this);
-
-                    File.WriteAllText(youtubeTokenPath, json);
-                }
-
+                return null;
             }
-        }
-
-        // Gets Youtube Related Data
-        public static class YoutubeAPI
-        {
-            public static string GetSecretKey() => jsonContent["YoutubeSecretKey"]!.ToString();
-
-            public static string GetClientSecret() => jsonContent["YoutubeClientSecret"]!.ToString();
-
-            // Works as GetClientSecret() with Initial Conversion to a GoogleClientSecrets type
-            public static GoogleClientSecrets GetGoogleClientSecret() => jsonContent["YoutubeClientSecret"]!.ToObject<GoogleClientSecrets>()!;
-
-            public static string GetClientId() => jsonContent["YoutubeClientId"]!.ToString();
-
-            public static string GetApiKey() => jsonContent["YoutubeApiKey"]!.ToString();
-        }
-
-        // Gets Spotify Related Data
-        public class SpotifyAPI
-        {
-            public static string GetSecretKey() => jsonContent["SpotifySecretKey"]!.ToString();
-
-            public static string GetClientId() => jsonContent["SpotifyClientId"]!.ToString();
         }
     }
 }

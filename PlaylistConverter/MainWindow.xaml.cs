@@ -24,7 +24,7 @@ namespace PlaylistConverter
     public partial class MainWindow : Window
     {
         // FileSystemWatcher for Tokens
-        private readonly FileSystemWatcher tokenFileWatcher = new(AppConfig.Tokens.tokenFolderDirectory)
+        private readonly FileSystemWatcher tokenFileWatcher = new(AppConfig.TokenStorage.tokenFolderDirectory)
         {
             Filter = "*.*", // ALL file types
             NotifyFilter = NotifyFilters.LastAccess
@@ -36,7 +36,7 @@ namespace PlaylistConverter
         };
 
         // DirectoryInfo to represent the token folder
-        private readonly DirectoryInfo tokenFolderDirectory = new(Tokens.GetTokenStorageFolderDirectory());
+        private readonly DirectoryInfo tokenFolderDirectory = new(TokenStorage.GetTokenStorageFolderDirectory());
         private YoutubeAuthentication? youtubeAuth; // not sure if needed
         private SpotifyAuthentication? spotifyAuth;
 
@@ -160,7 +160,7 @@ namespace PlaylistConverter
         // Checks if Spotify authentication is valid from current session
         private bool ValidateSpotifyToken()
         {
-            var spotifyToken = SpotifyAuthentication.LoadFile();
+            var spotifyToken = AppConfig.TokenStorage.LoadSpotifyToken();
             
             // One-way condition
             //if (spotifyToken != null && !spotifyToken.IsExpired && !string.IsNullOrEmpty(spotifyToken.RefreshToken))
@@ -202,7 +202,7 @@ namespace PlaylistConverter
         // Checks if Youtube authentication is valid from current session
         private bool ValidateYoutubeToken()
         {
-            var youtubeToken = AppConfig.Tokens.YoutubeToken.LoadFromFile();
+            var youtubeToken = AppConfig.TokenStorage.LoadYoutubeToken();
 
             // One-way condition
             //if (youtubeToken != null && !youtubeToken.IsExpired && !string.IsNullOrEmpty(youtubeToken.RefreshToken))
@@ -213,13 +213,13 @@ namespace PlaylistConverter
             // Precautions (Lead to false)
             if (youtubeToken != null)
             {
-                if (youtubeToken.IsExpired)
+                if (youtubeToken.Token.ExpiresInSeconds == null)
                 {
                     Debug.WriteLine("Validation Failed: Youtube Token is Expired");
                     YoutubeAuthStatusValueLabel.Content += AppConfig.authIsExpiredText;
                     return false;
                 }
-                else if (youtubeToken.RefreshToken == null)
+                else if (youtubeToken.Token.RefreshToken == null)
                 {
                     Debug.WriteLine("Validation Failed: Youtube Token is NULL");
                     YoutubeAuthStatusValueLabel.Content += AppConfig.authIsNull;
