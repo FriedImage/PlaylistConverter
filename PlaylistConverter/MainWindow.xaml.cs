@@ -161,7 +161,7 @@ namespace PlaylistConverter
         private bool ValidateSpotifyToken()
         {
             var spotifyToken = SpotifyAuthentication.LoadFile();
-
+            
             // One-way condition
             //if (spotifyToken != null && !spotifyToken.IsExpired && !string.IsNullOrEmpty(spotifyToken.RefreshToken))
             //{
@@ -242,9 +242,7 @@ namespace PlaylistConverter
         {
             try
             {
-                var service = await YoutubeAuthentication.AuthenticateAsyncLocal();
-
-                // Requests
+                var service = await YoutubeAuthentication.GetYouTubeServiceAsync();
             }
             catch (Exception ex)
             {
@@ -274,9 +272,13 @@ namespace PlaylistConverter
         {
             try
             {
-                spotifyAuth = new SpotifyAuthentication();
+                var spotify = await SpotifyAuthentication.GetSpotifyClientAsync();
 
-                await spotifyAuth.CheckSavedTokensAndAuthenticate();
+                if (spotify != null)
+                {
+                    var me = await spotify.UserProfile.Current();
+                    Debug.WriteLine($"Authenticated using saved tokens as: {me.DisplayName}");
+                }
             }
             catch (Exception ex)
             {

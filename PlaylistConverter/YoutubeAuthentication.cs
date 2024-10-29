@@ -24,10 +24,23 @@ namespace PlaylistConverter
         private static readonly int _port = 5001;
         private const string AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
         private const string TokenEndpoint = "https://www.googleapis.com/oauth2/v4/token";
+        private static YouTubeService? _youtubeService;
+        public static YouTubeService? YoutubeClientInstance => _youtubeService;
 
         public YoutubeAuthentication()
         {
             LoadClientSecrets(AppConfig.YoutubeJsonFilePath);
+        }
+
+        public static async Task<YouTubeService> GetYouTubeServiceAsync()
+        {
+            if (_youtubeService != null)
+            {
+                return _youtubeService;
+            }
+
+            _youtubeService = await AuthenticateAsyncLocal();
+            return _youtubeService;
         }
 
         public static async Task<YouTubeService> AuthenticateAsyncLocal()
@@ -52,13 +65,20 @@ namespace PlaylistConverter
             }
 
             // Create YouTube API service
-            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            _youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = "SpotiTube - Playlist Converter",
             });
 
-            return youtubeService;
+            
+            //var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            //{
+            //    HttpClientInitializer = credential,
+            //    ApplicationName = "SpotiTube - Playlist Converter",
+            //});
+
+            return _youtubeService;
         }
 
         private void LoadClientSecrets(string path)

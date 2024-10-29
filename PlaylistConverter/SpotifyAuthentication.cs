@@ -15,7 +15,40 @@ namespace PlaylistConverter
     internal class SpotifyAuthentication
     {
         private static readonly EmbedIOAuthServer _server = new(new Uri("http://localhost:5543/callback"), 5543);
-        private static string _codeVerifier;
+        private static string? _codeVerifier;
+        private static SpotifyClient? _spotifyClient;
+        private static TaskCompletionSource<SpotifyClient> _spotifyClientTcs = new();
+        public static SpotifyClient? SpotifyClientInstance => _spotifyClient;
+
+        public static async Task<SpotifyClient> GetSpotifyClientAsync()
+        {
+            // If we already have a client instance, return it
+            if (_spotifyClient != null) return _spotifyClient;
+
+            // If tokens exist, load and use them to create the client
+            if (File.Exists(AppConfig.spotifyTokenPath))
+            {
+                var json = await File.ReadAllTextAsync(AppConfig.spotifyTokenPath);
+                var tokenResponse = JsonConvert.DeserializeObject<PKCETokenResponse>(json);
+
+                var authenticator = new PKCEAuthenticator(AppConfig.SpotifyClientId, tokenResponse);
+                authenticator.TokenRefreshed += (sender, token) =>
+                {
+                    SaveTokensAsync(token);  // Save refreshed tokens
+                };
+
+                var config = SpotifyClientConfig.CreateDefault().WithAuthenticator(authenticator);
+                _spotifyClient = new SpotifyClient(config);
+
+                return _spotifyClient;
+            }
+            else
+            {
+                // If no saved tokens, start authentication
+                await StartSpotifyAuthentication();
+                return await _spotifyClientTcs.Task;
+            }
+        }
 
         public static async Task StartSpotifyAuthentication()
         {
@@ -32,8 +65,8 @@ namespace PlaylistConverter
             {
                 CodeChallenge = codeChallenge, // Include the code challenge in the request
                 CodeChallengeMethod = "S256",  // This specifies that we are using PKCE
-                Scope = new List<string>
-                {
+                Scope =
+                [
                     Scopes.PlaylistReadPrivate,
                     Scopes.PlaylistReadCollaborative,
                     Scopes.PlaylistModifyPrivate,
@@ -42,7 +75,7 @@ namespace PlaylistConverter
                     Scopes.UserReadPrivate,
                     Scopes.UserReadEmail,
                     Scopes.UserLibraryModify
-                }
+                ]
             };
 
             BrowserUtil.Open(request.ToUri());
@@ -55,31 +88,28 @@ namespace PlaylistConverter
         {
             await _server.Stop();
 
-            // Exchange authorization code for tokens using the PKCE verifier (no ClientSecret needed)
             var config = SpotifyClientConfig.CreateDefault();
             var tokenResponse = await new OAuthClient(config).RequestToken(
                 new PKCETokenRequest(
                     AppConfig.SpotifyClientId,
                     response.Code,
                     _server.BaseUri,
-                    _codeVerifier // Use the saved code verifier to exchange the code for tokens
+                    _codeVerifier
                 )
             );
 
-            // Save tokens persistently
             await SaveTokensAsync(tokenResponse);
 
-            // You can now create a SpotifyClient with the tokens
-            var spotify = new SpotifyClient(tokenResponse.AccessToken);
-
-            var me = await spotify.UserProfile.Current();
-            Debug.WriteLine($"Logged as: {me.DisplayName}");
+            // Instantiate SpotifyClient and save it to _spotifyClient
+            _spotifyClient = new SpotifyClient(tokenResponse.AccessToken);
+            _spotifyClientTcs.TrySetResult(_spotifyClient);
         }
 
         private static async Task OnErrorReceived(object sender, string error, string state)
         {
             Debug.WriteLine($"Aborting authorization, error received: {error}");
             await _server.Stop();
+            _spotifyClientTcs.TrySetException(new Exception(error));
         }
 
         private static async Task SaveTokensAsync(PKCETokenResponse tokenResponse)
@@ -88,31 +118,32 @@ namespace PlaylistConverter
             await File.WriteAllTextAsync(AppConfig.spotifyTokenPath, json);  // Save tokens in a file for future use
         }
 
-        public async Task CheckSavedTokensAndAuthenticate()
-        {
-            if (File.Exists(AppConfig.spotifyTokenPath))
-            {
-                var json = await File.ReadAllTextAsync(AppConfig.spotifyTokenPath);
-                var tokenResponse = JsonConvert.DeserializeObject<PKCETokenResponse>(json);
+        // GetSpotifyClient() is newer
+        //public static async Task CheckSavedTokensAndAuthenticate()
+        //{
+        //    if (File.Exists(AppConfig.spotifyTokenPath))
+        //    {
+        //        var json = await File.ReadAllTextAsync(AppConfig.spotifyTokenPath);
+        //        var tokenResponse = JsonConvert.DeserializeObject<PKCETokenResponse>(json);
 
-                var authenticator = new PKCEAuthenticator(AppConfig.SpotifyClientId, tokenResponse);
-                authenticator.TokenRefreshed += (sender, token) =>
-                {
-                    // Save refreshed tokens
-                    SaveTokensAsync(token);
-                };
+        //        var authenticator = new PKCEAuthenticator(AppConfig.SpotifyClientId, tokenResponse);
+        //        authenticator.TokenRefreshed += (sender, token) =>
+        //        {
+        //            // Save refreshed tokens
+        //            SaveTokensAsync(token);
+        //        };
 
-                var config = SpotifyClientConfig.CreateDefault().WithAuthenticator(authenticator);
-                var spotify = new SpotifyClient(config);
+        //        var config = SpotifyClientConfig.CreateDefault().WithAuthenticator(authenticator);
+        //        var spotify = new SpotifyClient(config);
 
-                var me = await spotify.UserProfile.Current();
-                Debug.WriteLine($"Authenticated using saved tokens as: {me.DisplayName}");
-            }
-            else
-            {
-                await StartSpotifyAuthentication();  // No saved tokens, start the authentication flow
-            }
-        }
+        //        var me = await spotify.UserProfile.Current();
+        //        Debug.WriteLine($"Authenticated using saved tokens as: {me.DisplayName}");
+        //    }
+        //    else
+        //    {
+        //        await StartSpotifyAuthentication();  // No saved tokens, start the authentication flow
+        //    }
+        //}
 
         public static PKCETokenResponse? LoadFile()
         {
