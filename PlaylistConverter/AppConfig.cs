@@ -171,26 +171,33 @@ namespace PlaylistConverter
                 }
             }
 
-            public static UserCredential? LoadYoutubeToken()
+            public static class YoutubeToken
             {
-                if (File.Exists(youtubeTokenPath))
+                // Helps with Deserialization
+                public static Dictionary<string, object>? Load()
                 {
-                    var json = File.ReadAllText(youtubeTokenPath);
-                    return JsonConvert.DeserializeObject<UserCredential>(json);
-                }
+                    if (File.Exists(youtubeTokenPath))
+                    {
+                        var json = File.ReadAllText(youtubeTokenPath);
+                        return JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+                    }
 
-                return null;
+                    return null;
+                }
             }
 
-            public static PKCETokenResponse? LoadSpotifyToken()
+            public static class SpotifyToken
             {
-                if (File.Exists(spotifyTokenPath))
+                public static PKCETokenResponse? Load()
                 {
-                    var json = File.ReadAllText(spotifyTokenPath);
-                    return JsonConvert.DeserializeObject<PKCETokenResponse>(json);
-                }
+                    if (File.Exists(spotifyTokenPath))
+                    {
+                        var json = File.ReadAllText(spotifyTokenPath);
+                        return JsonConvert.DeserializeObject<PKCETokenResponse>(json);
+                    }
 
-                return null;
+                    return null;
+                }
             }
         }
     }
