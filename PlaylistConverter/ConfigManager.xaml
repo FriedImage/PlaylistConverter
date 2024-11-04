@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PlaylistConverter"
         mc:Ignorable="d"
-        Title="Token Configuration" Height="450" Width="600" ResizeMode="NoResize" Icon="/img/app_logo.png" WindowStartupLocation="CenterScreen">
+        Title="PlaylistConverter - Token Configuration" Height="450" Width="600" ResizeMode="NoResize" Icon="/img/app_logo.png" WindowStartupLocation="CenterScreen">
     <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="10*"/>

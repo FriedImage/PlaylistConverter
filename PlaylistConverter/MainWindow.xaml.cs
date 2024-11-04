@@ -52,6 +52,7 @@ namespace PlaylistConverter
 
             ResetText();
             UpdateClearTokensButton();
+            ShowSelectedPlatforms();
             CheckSavedAuthentications();
         }
 
@@ -310,6 +311,36 @@ namespace PlaylistConverter
             catch (Exception ex)
             {
                 MessageBox.Show($"Error clearing tokens: {ex.Message}");
+            }
+        }
+
+        private void ShowSelectedPlatforms()
+        {
+            // Show saved Platforms
+            Debug.WriteLine($"Platforms Selected on MainWindow: {AppConfig.GetListItems<string>(SelectedPlatforms)}");
+
+            foreach (var platform in SelectedPlatforms)
+            {
+                switch (platform)
+                {
+                    case "Spotify":
+                        Dispatcher.Invoke(delegate
+                        {
+                            SpotifyLoginGrid.Visibility = Visibility.Visible;
+                            SpotifyLoginGrid.IsEnabled = true;
+                        });
+                        break;
+                    case "Youtube":
+                        Dispatcher.Invoke(delegate
+                        {
+                            YoutubeLoginGrid.Visibility = Visibility.Visible;
+                            YoutubeLoginGrid.IsEnabled = true;
+                        });
+                        break;
+                    default:
+                        Debug.WriteLine($"Show Grid for Platform: {platform}");
+                        break;
+                }
             }
         }
     }

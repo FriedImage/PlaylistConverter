@@ -9,8 +9,6 @@ namespace PlaylistConverter
 {
     internal partial class AppConfig
     {
-        //static readonly string jsonFileContent = File.ReadAllText("apikeys.json"); 
-        //private static dynamic apiKeys;
 
         public static readonly string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         public static readonly string rootPath = Path.Combine(baseDirectory, @"..\..\..\");
@@ -21,7 +19,6 @@ namespace PlaylistConverter
         public static readonly string authIsValidText = " is Valid!";
         public static readonly string authIsExpiredText = " is Expired!";
         public static readonly string authIsNull = " is Invalid!";
-        private static readonly JObject jsonContent;
         public static List<string> SelectedPlatforms { get; set; } = [];
         public static string ConfigJsonFilePath { get; set; } = Path.Combine(configJsonDirectory, "config.json");
         public static string YoutubeJsonFilePath { get; set; }
@@ -33,8 +30,6 @@ namespace PlaylistConverter
 
         static AppConfig()
         {
-            string jsonFileContent = File.ReadAllText(jsonFilePath); // Reads content from json file
-            jsonContent = JObject.Parse(jsonFileContent); // Set JObject data to apikey.json type data
             YoutubeJsonFilePath = GetYoutubeClientSecretsFile();
             ConfigValid = CheckExistingConfiguration();
             SpotifyClientId = GetSpotifyClientIdFromConfig(ConfigJsonFilePath);
@@ -138,6 +133,25 @@ namespace PlaylistConverter
             }
 
             return string.Empty;
+        }
+
+        public static string GetListItems<T>(List<T> list, string separator = " ")
+        {
+            string listDetails = string.Empty;
+
+            for (int item = 0; item < list.Count - 1; item++)
+            {
+                listDetails += $"{list[item]}{separator}";
+            }
+            listDetails += list.Last();
+
+            // foreach attempt
+            //foreach (var item in list)
+            //{
+            //    listDetails += $"{separator}{item}";
+            //}
+
+            return listDetails;
         }
 
         // Contains all the Tokens used
