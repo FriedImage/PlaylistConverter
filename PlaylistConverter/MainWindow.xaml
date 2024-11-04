@@ -23,9 +23,9 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Button x:Name="OpenButton" Grid.Column="0" Content="Open" Grid.Row="3" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="Black" VerticalAlignment="Center" Height="40" Margin="100,0,100,0"/>
+        <Button x:Name="OpenButton" Grid.Column="0" Content="Open" Grid.Row="3" Background="#FFDDDDDD" BorderThickness="1,1,1,1" BorderBrush="Black" VerticalAlignment="Center" Height="40" Margin="100,0,100,0" Click="OpenButton_Click"/>
         <Button x:Name="ClearTokensButton" Grid.Column="2" Content="Clear Tokens" Grid.Row="3" VerticalAlignment="Center" Height="40" BorderBrush="Black" Click="ClearTokensButton_Click" Margin="100,0,100,0"/>
-        <Label x:Name="ClearTokensLabel" Grid.Column="2" Content="Having token problems?" Grid.Row="3" VerticalAlignment="Top" Foreground="White" FontSize="8" HorizontalAlignment="Center"/>
+        <Label x:Name="ClearTokensLabel" Grid.Column="2" Content="Having token issues?" Grid.Row="3" VerticalAlignment="Top" Foreground="White" FontSize="8" HorizontalAlignment="Center"/>
         <Grid x:Name="SpotifyLoginGrid" Grid.Row="2" Grid.ColumnSpan="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20*"/>
@@ -73,5 +73,6 @@
             <Label x:Name="AppNameLabel" Content="PlaylistConverter - Convert into platforms easily" FontSize="18" FontStyle="Italic" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="1"/>
             <Image Source="/img/app_logo.png" VerticalAlignment="Top" HorizontalAlignment="Center"/>
         </Grid>
+        <Label x:Name="OpenButtonLabel" Content="Get into Convertin'!" Grid.Row="3" VerticalAlignment="Top" Foreground="White" FontSize="8" HorizontalAlignment="Center"/>
     </Grid>
 </Window>

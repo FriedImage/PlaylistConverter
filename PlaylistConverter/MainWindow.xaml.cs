@@ -112,48 +112,79 @@ namespace PlaylistConverter
 
         private void CheckSavedAuthentications()
         {
-            bool spotifyTokenValid = Dispatcher.Invoke(() => ValidateSpotifyToken());
-            bool youtubeTokenValid = Dispatcher.Invoke(() => ValidateYoutubeToken());
-
-            // Spotify token validation
-            if (spotifyTokenValid)
+            ResetText();
+            Dispatcher.Invoke(() =>
             {
-                Dispatcher.Invoke(() =>
-                {
-                    SpotifyAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
-                    SpotifyLoginButton.IsEnabled = false;
-                    SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
-                });
-            }
-            else
+                OpenButton.IsEnabled = true;
+            });
+
+            if (SelectedPlatforms.Contains("Youtube"))
             {
-                
+                bool youtubeTokenValid = Dispatcher.Invoke(() => ValidateYoutubeToken());
 
-                Dispatcher.Invoke(() =>
+                // Youtube token validation
+                if (youtubeTokenValid)
                 {
-                    SpotifyAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
-                    SpotifyLoginButton.IsEnabled = true;
-                    SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
-                });
+                    if (!LoggedPlatforms.Contains("Youtube"))
+                    {
+                        LoggedPlatforms.Add("Youtube");
+                    }
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        YoutubeAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
+                        YoutubeLoginButton.IsEnabled = false;
+                        YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
+                    });
+                }
+                else
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        YoutubeAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
+                        YoutubeLoginButton.IsEnabled = true;
+                        YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
+                    });
+                }
             }
 
-            // Youtube token validation
-            if (youtubeTokenValid)
+            if (SelectedPlatforms.Contains("Spotify"))
+            {
+                bool spotifyTokenValid = Dispatcher.Invoke(() => ValidateSpotifyToken());
+
+                // Spotify token validation
+                if (spotifyTokenValid)
+                {
+                    if (!LoggedPlatforms.Contains("Spotify"))
+                    {
+                        LoggedPlatforms.Add("Spotify");
+                    }
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        SpotifyAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
+                        SpotifyLoginButton.IsEnabled = false;
+                        SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
+                    });
+                }
+                else
+                {
+
+
+                    Dispatcher.Invoke(() =>
+                    {
+                        SpotifyAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
+                        SpotifyLoginButton.IsEnabled = true;
+                        SpotifyAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
+                    });
+                }
+            }
+
+            if (AppConfig.LoggedPlatforms.Count < 2)
             {
                 Dispatcher.Invoke(() => 
                 {
-                    YoutubeAuthStatusValueLabel.Foreground = Brushes.LimeGreen;
-                    YoutubeLoginButton.IsEnabled = false;
-                    YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/valid.png"));
-                });
-            }
-            else
-            {
-                Dispatcher.Invoke(() => 
-                {
-                    YoutubeAuthStatusValueLabel.Foreground = Brushes.OrangeRed;
-                    YoutubeLoginButton.IsEnabled = true;
-                    YoutubeAuthStatusValidImage.Source = new BitmapImage(new Uri(AppConfig.rootPath + "img/invalid.png"));
+                    OpenButton.IsEnabled = false;
                 });
             }
         }
@@ -168,9 +199,6 @@ namespace PlaylistConverter
             //{
             //    return true;
             //}
-
-            // Reset before adding extension
-            ResetText();
 
             // Precautions (Lead to false)
             if (spotifyToken != null)
@@ -307,6 +335,7 @@ namespace PlaylistConverter
 
                 // Disable button
                 UpdateClearTokensButton();
+                OpenButton.IsEnabled = false;
             }
             catch (Exception ex)
             {
@@ -342,6 +371,16 @@ namespace PlaylistConverter
                         break;
                 }
             }
+        }
+
+        private void OpenButton_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine($"User logged in atleast 2 platforms? {LoggedPlatforms.Count >= 2}");
+
+            PlaylistConversion playlistConversion = new();
+            playlistConversion.Show();
+
+            Close();
         }
     }
 }

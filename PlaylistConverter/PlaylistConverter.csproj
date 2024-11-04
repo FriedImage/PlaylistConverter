@@ -26,6 +26,9 @@
     <Resource Include="img\arrow.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="img\arrows_swap.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="img\invalid.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

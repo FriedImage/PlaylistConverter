@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using Google.Apis.Auth.OAuth2;
 using Newtonsoft.Json;
@@ -20,6 +21,7 @@ namespace PlaylistConverter
         public static readonly string authIsExpiredText = " is Expired!";
         public static readonly string authIsNull = " is Invalid!";
         public static List<string> SelectedPlatforms { get; set; } = [];
+        public static List<string> LoggedPlatforms { get; set; } = [];
         public static string ConfigJsonFilePath { get; set; } = Path.Combine(configJsonDirectory, "config.json");
         public static string YoutubeJsonFilePath { get; set; }
         public static bool ConfigValid { get; set; }
@@ -53,7 +55,7 @@ namespace PlaylistConverter
 
                 if (youtubeConfigJson["web"] != null && ValidateYouTubeConfig())
                 {
-                    SelectedPlatforms.Add("YouTube");
+                    SelectedPlatforms.Add("Youtube");
                 }
             }
 
@@ -89,7 +91,7 @@ namespace PlaylistConverter
                 var configData = JObject.Parse(File.ReadAllText(ConfigJsonFilePath));
                 Debug.WriteLine($"Config found at: {ConfigJsonFilePath}");
 
-                // Check if the YouTube config path exists
+                // Check if the Youtube config path exists
                 var youtubeConfigPath = configData["youtube"]?["config_path"]?.ToString();
 
                 if (!string.IsNullOrEmpty(youtubeConfigPath) && youtubeConfigPath.EndsWith(".json"))
