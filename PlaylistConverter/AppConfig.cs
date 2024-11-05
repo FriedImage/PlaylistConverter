@@ -145,7 +145,12 @@ namespace PlaylistConverter
             {
                 listDetails += $"{list[item]}{separator}";
             }
-            listDetails += list.Last();
+
+            // if no SelectedPlatforms (first time)
+            if (list.Count > 0)
+            {
+                listDetails += list.Last();
+            }
 
             // foreach attempt
             //foreach (var item in list)
