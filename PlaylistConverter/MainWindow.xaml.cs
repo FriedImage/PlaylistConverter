@@ -37,8 +37,6 @@ namespace PlaylistConverter
 
         // DirectoryInfo to represent the token folder
         private readonly DirectoryInfo tokenFolderDirectory = new(TokenStorage.GetTokenStorageFolderDirectory());
-        private YoutubeAuthentication? youtubeAuth; // not sure if needed
-        private SpotifyAuthentication? spotifyAuth;
 
         // Constructor
         public MainWindow()
@@ -113,10 +111,6 @@ namespace PlaylistConverter
         private void CheckSavedAuthentications()
         {
             ResetText();
-            Dispatcher.Invoke(() =>
-            {
-                OpenButton.IsEnabled = true;
-            });
 
             if (SelectedPlatforms.Contains("Youtube"))
             {
@@ -180,13 +174,10 @@ namespace PlaylistConverter
                 }
             }
 
-            if (AppConfig.LoggedPlatforms.Count < 2)
+            Dispatcher.Invoke(() =>
             {
-                Dispatcher.Invoke(() => 
-                {
-                    OpenButton.IsEnabled = false;
-                });
-            }
+                OpenButton.IsEnabled = AppConfig.LoggedPlatforms.Count >= 2;
+            });
         }
 
         // Checks if Spotify authentication is valid from current session
@@ -381,6 +372,26 @@ namespace PlaylistConverter
             playlistConversion.Show();
 
             Close();
+        }
+
+        private async void Main_Loaded(object sender, RoutedEventArgs e)
+        {
+            foreach (var platform in SelectedPlatforms)
+            {
+                if (platform == "Youtube" && YoutubeAuthentication.YoutubeClientInstance == null)
+                {
+                    await YoutubeAuthentication.GetYouTubeServiceAsync();
+                }
+                
+                if (platform == "Spotify" && SpotifyAuthentication.SpotifyClientInstance == null)
+                {
+                    await SpotifyAuthentication.GetSpotifyClientAsync();
+                }
+            }
+
+            // Tests
+            Debug.WriteLine($"Does SpotifyClient exist? {SpotifyAuthentication.SpotifyClientInstance.UserProfile.Current().Result.DisplayName}");
+            Debug.WriteLine($"Does YoutubeService exist? {YoutubeAuthentication.YoutubeClientInstance.ApplicationName}");
         }
     }
 }

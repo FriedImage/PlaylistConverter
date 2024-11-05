@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Google.Apis.YouTube.v3;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -22,6 +23,9 @@ namespace PlaylistConverter
     public partial class PlaylistConversion : Window
     {
         public static ObservableCollection<string> PlatformComboBoxOptions { get; set; } = [];
+        public ObservableCollection<PlaylistInfo> Playlists { get; set; } = [];
+
+        //static PlaylistInfo test = new("test", "desc", "me", 5);
 
         public PlaylistConversion()
         {
@@ -64,11 +68,7 @@ namespace PlaylistConverter
                 }
             }
 
-            Dispatcher.Invoke(() =>
-            {
-                SharedPlaylistTextBlock.Visibility = PlatformComboBox.SelectedIndex != -1 ? Visibility.Visible : Visibility.Collapsed;
-                SharedPlaylistTextBox.Visibility = PlatformComboBox.SelectedIndex != -1 ? Visibility.Visible : Visibility.Collapsed;
-            });
+            InitializePlaylists();
         }
 
         private void ResetUrlTextBox()
@@ -78,6 +78,39 @@ namespace PlaylistConverter
                 SharedPlaylistTextBlock.Visibility = Visibility.Collapsed;
                 SharedPlaylistTextBox.Visibility = Visibility.Collapsed;
                 SharedPlaylistTextBox.BorderBrush = Brushes.Black;
+            });
+        }
+
+        private async void InitializePlaylists()
+        {
+            ObservableCollection<PlaylistInfo> playlistsToAdd = [];
+
+            if (PlatformComboBox.SelectedItem is string selectedPlatform)
+            {
+                if (selectedPlatform == "Spotify")
+                {
+                    playlistsToAdd = await SpotifyAuthentication.GetPlaylistsAsync();
+                }
+                else if (selectedPlatform == "Youtube")
+                {
+                    playlistsToAdd = await YoutubeAuthentication.GetPlaylistsAsync();
+                }
+            }
+
+            Dispatcher.Invoke(() =>
+            {
+                SharedPlaylistTextBlock.Visibility = PlatformComboBox.SelectedIndex != -1 ? Visibility.Visible : Visibility.Collapsed;
+                SharedPlaylistTextBox.Visibility = PlatformComboBox.SelectedIndex != -1 ? Visibility.Visible : Visibility.Collapsed;
+
+                Debug.WriteLine($"Clearing Playlists...");
+                Playlists.Clear();
+
+                Debug.WriteLine($"Adding Playlists...");
+                foreach (PlaylistInfo playlist in playlistsToAdd)
+                {
+                    Playlists.Add(playlist);
+                    Debug.WriteLine($"Playlist: {playlist.Name}");
+                }
             });
         }
     }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PlaylistConverter"
         mc:Ignorable="d"
-        Title="PlaylistConverter - Platform Login" Height="450" Width="800" ResizeMode="NoResize" Icon="/img/app_logo.png" WindowStartupLocation="CenterScreen">
+        Title="PlaylistConverter - Platform Login" Height="450" Width="800" ResizeMode="NoResize" Icon="/img/app_logo.png" WindowStartupLocation="CenterScreen" Loaded="Main_Loaded">
     <Grid x:Name="MainGrid">
         <Grid.Background>
             <LinearGradientBrush EndPoint="0.5,10" StartPoint="0.5,0">

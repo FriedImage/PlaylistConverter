@@ -14,6 +14,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
+using System.Collections.ObjectModel;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace PlaylistConverter
 {
@@ -96,7 +98,28 @@ namespace PlaylistConverter
             }
         }
 
+        public static async Task<ObservableCollection<PlaylistInfo>> GetPlaylistsAsync()
+        {
+            var playlists = new ObservableCollection<PlaylistInfo>();
 
+            var youtubeService = await GetYouTubeServiceAsync();
+            var request = youtubeService.Playlists.List("snippet,contentDetails");
+            request.Mine = true;
+            var response = await request.ExecuteAsync();
+
+            foreach (var playlist in response.Items)
+            {
+                playlists.Add(new PlaylistInfo(playlist.Snippet.Title, playlist.Snippet.ChannelTitle, (int)playlist.ContentDetails.ItemCount.Value, playlist.Snippet.Description));
+                //{
+                //    Name = playlist.Snippet.Title,
+                //    Description = playlist.Snippet.Description,
+                //    Creator = playlist.Snippet.ChannelTitle,
+                //    SongCount = (int)playlist.ContentDetails.ItemCount.Value
+                //});
+            }
+
+            return playlists;
+        }
 
 
 

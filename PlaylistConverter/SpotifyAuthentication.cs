@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using Newtonsoft.Json;
 using static PlaylistConverter.AppConfig.TokenStorage;
+using System.Collections.ObjectModel;
 
 namespace PlaylistConverter
 {
@@ -116,6 +117,27 @@ namespace PlaylistConverter
         {
             var json = JsonConvert.SerializeObject(tokenResponse);
             await File.WriteAllTextAsync(AppConfig.TokenStorage.spotifyTokenPath, json);  // Save tokens in a file for future use
+        }
+
+        public static async Task<ObservableCollection<PlaylistInfo>> GetPlaylistsAsync()
+        {
+            var playlists = new ObservableCollection<PlaylistInfo>();
+
+            var spotifyClient = await GetSpotifyClientAsync();
+            var userPlaylists = await spotifyClient.Playlists.CurrentUsers();
+
+            foreach (var playlist in userPlaylists.Items)
+            {
+                playlists.Add(new PlaylistInfo(playlist.Name, playlist.Owner.DisplayName, playlist.Tracks.Total.Value, playlist.Description));
+                //{
+                //    Name = playlist.Name,
+                //    Description = playlist.Description,
+                //    Creator = playlist.Owner.DisplayName,
+                //    SongCount = playlist.Tracks.Total.Value
+                //});
+            }
+
+            return playlists;
         }
 
         // GetSpotifyClient() is newer
